@@ -2,6 +2,7 @@ package hackathon.bigone.sunsak.foodbox.foodbox.controller;
 
 import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodBoxResponse;
 import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodItemRequest;
+import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodListResponse;
 import hackathon.bigone.sunsak.foodbox.foodbox.dto.update.FoodItemBatchUpdateRequest;
 import hackathon.bigone.sunsak.foodbox.foodbox.service.FoodBoxService;
 import hackathon.bigone.sunsak.foodbox.ocr.dto.OcrExtractedItem;
@@ -59,14 +60,20 @@ public class FoodBoxController {
         return ResponseEntity.ok(foodBoxService.saveFoods(userId, items));
     }
 
+    //all - 모두 , imminent- 임박날짜
     @GetMapping("") //로그인한 사용자의 식품 목록 보여주기
-    public ResponseEntity<List<FoodBoxResponse>> getAllFoods(
-            @AuthenticationPrincipal CustomUserDetail userDetail
+    public ResponseEntity<FoodListResponse> getFoods(
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            @RequestParam(defaultValue = "all") String filter,
+            @RequestParam(defaultValue = "7") Integer days
     ){
+        if (userDetail == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (days < 1) days = 7; // 안전장치
+
         Long userId = userDetail.getId();
 
-        List<FoodBoxResponse> list = foodBoxService.getFoodsByUser(userId);
-        return ResponseEntity.ok(list);
+        FoodListResponse resp = foodBoxService.getFoodsByUser(userId, filter, days);
+        return ResponseEntity.ok(resp);
     }
 
     @PatchMapping("/update") //수정
@@ -78,7 +85,7 @@ public class FoodBoxController {
         if (userDetail == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long userId = userDetail.getUser().getId();
         foodBoxService.batchUpdate(userId, req.getItems());
-        return ResponseEntity.ok(foodBoxService.getFoodsByUser(userId));
+        return ResponseEntity.ok(foodBoxService.getFoodsByUserList(userId));
     }
 
     @DeleteMapping("/delete")
