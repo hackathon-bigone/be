@@ -4,19 +4,19 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
-@Getter
 @Setter
-public class Step {
+@Getter
+@Entity
+public class Ingredient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable= false)
-    private int stepNumber;
+    @Column(nullable = false, length = 100)
+    private String name;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String description;
+    @Column(nullable = true, length = 50)
+    private String amount; // "100g", "1개" 등 수량 정보
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_postId")
