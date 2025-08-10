@@ -26,7 +26,7 @@ public class BoardService {
     public Board create(BoardDto boardDto, SiteUser author) {
         Board newBoard = new Board();
         newBoard.setTitle(boardDto.getTitle());
-        newBoard.setServings(boardDto.getServings());
+        newBoard.setServing(boardDto.getServing());
         newBoard.setCookingTime(boardDto.getCookingTime());
         newBoard.setImageUrl(boardDto.getImageUrl());
         newBoard.setCategory(boardDto.getCategory());
@@ -81,7 +81,7 @@ public class BoardService {
 
         existingBoard.setTitle(boardDto.getTitle());
         existingBoard.setDescription(boardDto.getDescription());
-        existingBoard.setServings(boardDto.getServings());
+        existingBoard.setServing(boardDto.getServing());
         existingBoard.setCookingTime(boardDto.getCookingTime());
         existingBoard.setImageUrl(boardDto.getImageUrl());
         existingBoard.setCategory(boardDto.getCategory());

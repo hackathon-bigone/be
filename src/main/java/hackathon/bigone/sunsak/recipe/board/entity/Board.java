@@ -24,7 +24,7 @@ public class Board {
 
     //양
     @Column(nullable=false, length = 100)
-    private String servings;
+    private String serving;
 
     //조리시간
     @Column(nullable=false, length = 100)

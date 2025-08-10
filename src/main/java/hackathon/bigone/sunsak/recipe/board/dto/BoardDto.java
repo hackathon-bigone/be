@@ -8,7 +8,7 @@ import java.util.List;
 @Setter
 public class BoardDto {
     private String title;
-    private String servings;
+    private String serving;
     private String cookingTime;
     private String imageUrl;
     private List<StepDto> steps;
