@@ -2,9 +2,9 @@ package hackathon.bigone.sunsak.foodbox.foodbox.service;
 
 //조회하는 역할
 
+import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodBoxImminentResponse;
 import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodBoxResponse;
 import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodListResponse;
-import hackathon.bigone.sunsak.foodbox.foodbox.entity.FoodBox;
 import hackathon.bigone.sunsak.foodbox.foodbox.repository.FoodBoxRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -27,69 +28,74 @@ public class FoodBoxQueryService { //조회하는 기능
     private static final DateTimeFormatter KOREAN_DATE = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
     private static final int DEFAULT_IMMINENT_DAYS = 7;
 
-    // 로그인한 유저의 foodbox 조회
-    @Transactional(readOnly = true)
-    public FoodListResponse getFoodsByUser(Long userId, String filter, Integer days) {
-        if (userId == null) throw new IllegalArgumentException("userId가 없습니다.");
+    private String todayKor() { return LocalDate.now(KST).format(KOREAN_DATE); } //헤더 날짜
 
-        boolean isImminent = "imminent".equalsIgnoreCase(filter);
-
-        final int threshold = (days == null) ? DEFAULT_IMMINENT_DAYS : days;
-        if (isImminent && threshold < 0) {
-            throw new IllegalArgumentException("days 는 0 이상이어야 합니다.");
-        }
-
-        LocalDate today = LocalDate.now(KST);
-        String todayStr = today.format(KOREAN_DATE);
-
-        List<FoodBox> rows = foodBoxRepository.findAllSortedByUserId(userId);
-
-        List<FoodBoxResponse> items;
-        if (isImminent) {
-            // 유통기한 있는 것만, daysLeft <= threshold
-            items = rows.stream()
-                    .filter(f -> f.getExpiryDate() != null)
-                    .map(f -> {
-                        long d = ChronoUnit.DAYS.between(today, f.getExpiryDate()); // 오늘=0, 지나면 음수
-                        return FoodBoxResponse.builder()
-                                .foodId(f.getId())
-                                .name(f.getName())
-                                .quantity(f.getQuantity())
-                                .expiryDate(f.getExpiryDate())
-                                .daysLeft((int) d)
-                                .imminent(d <= threshold)
-                                .build();
-                    })
-                    .filter(r -> r.getDaysLeft() != null && r.getDaysLeft() <= threshold)
-                    .sorted(Comparator
-                            .comparing(FoodBoxResponse::getDaysLeft)
-                            .thenComparing(FoodBoxResponse::getName, Comparator.nullsLast(Comparator.naturalOrder()))
-                    )
-                    .toList();
-        } else {
-            // 전체조회 - 디데이 없음
-            items = rows.stream()
-                    .map(f -> FoodBoxResponse.builder()
-                            .foodId(f.getId())
-                            .name(f.getName())
-                            .quantity(f.getQuantity())
-                            .expiryDate(f.getExpiryDate())
-                            .daysLeft(null)     // 전체에선 숨김
-                            .imminent(false)
-                            .build())
-                    .sorted(Comparator
-                            .comparing(FoodBoxResponse::getExpiryDate, Comparator.nullsLast(Comparator.naturalOrder()))
-                            .thenComparing(FoodBoxResponse::getName, Comparator.nullsLast(Comparator.naturalOrder()))
-                    )
-                    .toList();
-        }
-
-        return new FoodListResponse(todayStr, items);
+    private static String toDLabel(int d) {
+        if (d > 0) return "D-" + d;
+        if (d == 0) return "D-DAY";
+        return "D+" + Math.abs(d);
     }
 
-    @Transactional(readOnly = true) //내부 조회용
+    @Transactional(readOnly = true)
+    public FoodListResponse<FoodBoxResponse> getAllList(Long userId) {
+        if (userId == null) throw new IllegalArgumentException("userId가 없습니다.");
+
+        List<FoodBoxResponse> items = foodBoxRepository.findAllSortedByUserId(userId).stream()
+                .map(f -> FoodBoxResponse.builder()
+                        .foodId(f.getId())
+                        .name(f.getName())
+                        .quantity(f.getQuantity() == null ? 0 : f.getQuantity())
+                        .expiryDate(f.getExpiryDate())
+                        .build()
+                )
+                .sorted(Comparator
+                        .comparing(FoodBoxResponse::getExpiryDate, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(FoodBoxResponse::getName, Comparator.nullsLast(Comparator.naturalOrder()))
+                )
+                .toList();
+
+        return FoodListResponse.<FoodBoxResponse>builder()
+                .today(todayKor())
+                .items(items)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public FoodListResponse<FoodBoxImminentResponse> getImminentList(Long userId, Integer days) {
+        if (userId == null) throw new IllegalArgumentException("userId가 없습니다.");
+        final int threshold = (days == null ? DEFAULT_IMMINENT_DAYS : Math.max(0, days));
+        final LocalDate today = LocalDate.now(KST);
+
+        List<FoodBoxImminentResponse> items = foodBoxRepository.findAllSortedByUserId(userId).stream()
+                .filter(f -> f.getExpiryDate() != null)
+                .map(f -> {
+                    int d = (int) ChronoUnit.DAYS.between(today, f.getExpiryDate()); // 음수 허용
+                    if (Math.abs(d) > threshold) return null; // threshold 밖이면 제외
+                    return FoodBoxImminentResponse.builder()
+                            .foodId(f.getId())
+                            .name(f.getName())
+                            .quantity(f.getQuantity() == null ? 0 : f.getQuantity())
+                            .expiryDate(f.getExpiryDate())
+                            .daysLeft(d)                        // 원시값
+                            .dLabel(toDLabel(d))                // 디데이로 포맷 바꿈
+                            .build();
+                })
+                .filter(Objects::nonNull)
+                .sorted(Comparator
+                        .comparingInt(FoodBoxImminentResponse::getDaysLeft)
+                        .thenComparing(FoodBoxImminentResponse::getName, Comparator.nullsLast(Comparator.naturalOrder()))
+                )
+                .toList();
+
+        return FoodListResponse.<FoodBoxImminentResponse>builder()
+                .today(todayKor())
+                .items(items)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
     public List<FoodBoxResponse> getFoodsByUserList(Long userId) {
-        return getFoodsByUser(userId, "all", null).getItems(); //모든 식품 조회
+        return getAllList(userId).getItems();
     }
 
 }

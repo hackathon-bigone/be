@@ -17,6 +17,6 @@ import java.time.LocalDate;
 public class FoodBox extends BaseEntity {
     private Long userId;
     private String name;
-    private int quantity;
+    private Integer quantity;
     private LocalDate expiryDate;
 }

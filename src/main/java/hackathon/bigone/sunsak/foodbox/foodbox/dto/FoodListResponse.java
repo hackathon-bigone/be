@@ -9,7 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class FoodListResponse {
+public class FoodListResponse<T> {
     private String today;  //식품 조회 헤더 2025년 08월 09일로 보이게
-    private List<FoodBoxResponse> items;
+    private List<T> items;
 }
