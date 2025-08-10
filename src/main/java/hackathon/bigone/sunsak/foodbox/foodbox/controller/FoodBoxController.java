@@ -4,8 +4,10 @@ import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodBoxResponse;
 import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodItemRequest;
 import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodListResponse;
 import hackathon.bigone.sunsak.foodbox.foodbox.dto.update.FoodItemBatchUpdateRequest;
-import hackathon.bigone.sunsak.foodbox.foodbox.service.FoodBoxService;
+import hackathon.bigone.sunsak.foodbox.foodbox.service.FoodBoxCommandService;
+import hackathon.bigone.sunsak.foodbox.foodbox.service.FoodBoxQueryService;
 import hackathon.bigone.sunsak.foodbox.ocr.dto.OcrExtractedItem;
+import hackathon.bigone.sunsak.foodbox.ocr.service.OcrReceiptService;
 import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +21,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/foodbox")
 public class FoodBoxController {
-    private final FoodBoxService foodBoxService;
+    private final FoodBoxQueryService foodBoxQueryService;
+    private final FoodBoxCommandService foodBoxCommandService;
+    private final OcrReceiptService ocrReceiptService;
 
     @PostMapping("/ocr/save") //영수증 인식 입력
     public ResponseEntity<List<FoodBoxResponse>> saveFoodsWithOCR(
@@ -30,12 +34,12 @@ public class FoodBoxController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         Long userId = userDetail.getId(); // JWT 인증 기반
-        List<FoodBoxResponse> savedFoods = foodBoxService.saveFromOcr(userId, items);
+        List<FoodBoxResponse> savedFoods = ocrReceiptService.saveFromOcr(userId, items);
         return ResponseEntity.ok(savedFoods);
     }
 
     //사용자 직접 입력
-    @PostMapping("/save")
+    @PostMapping("")
     public ResponseEntity<List<FoodBoxResponse>> saveFoods(
             @RequestBody List<FoodItemRequest> items,
             @AuthenticationPrincipal CustomUserDetail userDetail
@@ -57,7 +61,7 @@ public class FoodBoxController {
             }
         }
 
-        return ResponseEntity.ok(foodBoxService.saveFoods(userId, items));
+        return ResponseEntity.ok(foodBoxCommandService.saveFoods(userId, items));
     }
 
     //all - 모두 , imminent- 임박날짜
@@ -68,15 +72,15 @@ public class FoodBoxController {
             @RequestParam(defaultValue = "7") Integer days
     ){
         if (userDetail == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        if (days < 1) days = 7; // 안전장치
+        if (days == null || days < 0) days = 0; // 안전장치
 
         Long userId = userDetail.getId();
 
-        FoodListResponse resp = foodBoxService.getFoodsByUser(userId, filter, days);
+        FoodListResponse resp = foodBoxQueryService.getFoodsByUser(userId, filter, days);
         return ResponseEntity.ok(resp);
     }
 
-    @PatchMapping("/update") //수정
+    @PatchMapping("") //수정
     public ResponseEntity<List<FoodBoxResponse>> modifyFoods(
             //@RequestParam(defaultValue = "false") boolean dryRun, //미리보기
             @RequestBody FoodItemBatchUpdateRequest req,
@@ -84,11 +88,11 @@ public class FoodBoxController {
     ){
         if (userDetail == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long userId = userDetail.getUser().getId();
-        foodBoxService.batchUpdate(userId, req.getItems());
-        return ResponseEntity.ok(foodBoxService.getFoodsByUserList(userId));
+        foodBoxCommandService.batchUpdate(userId, req.getItems());
+        return ResponseEntity.ok(foodBoxQueryService.getFoodsByUserList(userId));
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("")
     public ResponseEntity<Void> deleteFoods(
             @RequestBody List<Long> foodIds, //근데 id 여러개 삭제도 가능하게 할건데 List<Long> foodId 해야하나
             @AuthenticationPrincipal CustomUserDetail userDetail
@@ -98,7 +102,7 @@ public class FoodBoxController {
         }
         Long userId = userDetail.getUser().getId();
 
-        if(foodBoxService.delete(userId, foodIds)){
+        if(foodBoxCommandService.delete(userId, foodIds)){
             return ResponseEntity.noContent().build();
         }else{
             return ResponseEntity.notFound().build();
