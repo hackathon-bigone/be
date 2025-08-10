@@ -90,6 +90,7 @@ public class FoodBoxQueryService { //조회하는 기능
         return FoodListResponse.<FoodBoxImminentResponse>builder()
                 .today(todayKor())
                 .items(items)
+                .message(items.isEmpty()? "유통기한 임박 목록이 없어요" : null)
                 .build();
     }
 
