@@ -1,5 +1,6 @@
 package hackathon.bigone.sunsak.foodbox.foodbox.controller;
 
+import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodBoxImminentResponse;
 import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodBoxResponse;
 import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodItemRequest;
 import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodListResponse;
@@ -66,18 +67,21 @@ public class FoodBoxController {
 
     //all - 모두 , imminent- 임박날짜
     @GetMapping("") //로그인한 사용자의 식품 목록 보여주기
-    public ResponseEntity<FoodListResponse> getFoods(
+    public ResponseEntity<?> getFoods(
             @AuthenticationPrincipal CustomUserDetail userDetail,
             @RequestParam(defaultValue = "all") String filter,
             @RequestParam(defaultValue = "7") Integer days
     ){
         if (userDetail == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        if (days == null || days < 0) days = 0; // 안전장치
-
         Long userId = userDetail.getId();
 
-        FoodListResponse resp = foodBoxQueryService.getFoodsByUser(userId, filter, days);
-        return ResponseEntity.ok(resp);
+        if ("imminent".equalsIgnoreCase(filter)) {
+            FoodListResponse<FoodBoxImminentResponse> resp = foodBoxQueryService.getImminentList(userId, days);
+            return ResponseEntity.ok(resp);
+        } else {
+            FoodListResponse<FoodBoxResponse> resp = foodBoxQueryService.getAllList(userId);
+            return ResponseEntity.ok(resp);
+        }
     }
 
     @PatchMapping("") //수정
