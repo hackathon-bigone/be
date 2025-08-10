@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class SingupValidator {
+public class SignupValidator {
 
     private final UserRepository userRepository;
 
@@ -17,7 +17,7 @@ public class SingupValidator {
         passwordValidate(dto.getPassword(), dto.getRepeatPw());
     }
 
-    private void nicknameValidate(String nickname){
+    public void nicknameValidate(String nickname){
         String regex = "^[가-힣a-zA-Z\\s]{2,10}$";
         if (!nickname.matches(regex)) {
             throw new IllegalArgumentException("공백 포함 2~10자의 영문 또는 한글을 입력하세요.");
@@ -35,7 +35,7 @@ public class SingupValidator {
         }
     }
 
-    private void passwordValidate(String password, String repeatPw){
+    public void passwordValidate(String password, String repeatPw){
         String regex = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=`~{}\\[\\]:\";'<>?,./]).{8,16}$";
         if (!password.matches(regex)) {
             throw new IllegalArgumentException("비밀번호는 영문, 숫자, 특수문자를 포함한 8~16자를 입력하세요.");

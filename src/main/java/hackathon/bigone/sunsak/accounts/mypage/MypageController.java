@@ -1,12 +1,12 @@
 package hackathon.bigone.sunsak.accounts.mypage;
 
 import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
+import hackathon.bigone.sunsak.global.validate.accounts.SignupValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -14,9 +14,11 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RequestMapping("/mypage")
 public class MypageController {
+    private final SignupValidator signupValidator;
+    private final MypageService mypageService;
 
     @GetMapping("")
-   public ResponseEntity<?> getMypage(Authentication authentication){
+    public ResponseEntity<?> getMypage(Authentication authentication){
         if(authentication==null){
             return ResponseEntity.ok(
                     Map.of("message", "로그인 하고 순삭의 다양한 서비스를 경험해보세요!")
@@ -26,6 +28,43 @@ public class MypageController {
         return ResponseEntity.ok(Map.of(
                 "nickname", user.getNickname(),
                 "username", user.getUsername()
+        ));
+   }
+
+   @PatchMapping("/nickname")
+   public ResponseEntity<?> updateNickname(
+           @AuthenticationPrincipal CustomUserDetail userDetail,
+           @RequestBody Map<String, String> request
+   ){
+       if(userDetail== null){
+           return ResponseEntity.ok(
+                   Map.of("message", "로그인을 해주세요")
+           );
+       }
+
+       String nickname = request.get("nickname");
+       signupValidator.nicknameValidate(nickname);
+
+       mypageService.updateNickname(userDetail.getId(), nickname);
+       return ResponseEntity.ok(Map.of(
+               "message", "닉네임 변경이 완료되었습니다."
+       ));
+   }
+
+   @PatchMapping("/password")
+   public ResponseEntity<?> updatePassword(
+           @AuthenticationPrincipal CustomUserDetail userDetail,
+           @RequestBody PasswordChangeDto req
+   ){
+        if(userDetail== null){
+            return ResponseEntity.ok(
+                    Map.of("message", "로그인을 해주세요")
+            );
+        }
+        signupValidator.passwordValidate(req.getNewPassword(), req.getRepeatPw());
+        mypageService.updatePassword(userDetail.getId(), req);
+        return ResponseEntity.ok(Map.of(
+               "message", "비밀번호 변경이 완료되었습니다."
         ));
    }
 }

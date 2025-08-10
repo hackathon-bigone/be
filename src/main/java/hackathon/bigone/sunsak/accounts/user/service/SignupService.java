@@ -3,7 +3,7 @@ package hackathon.bigone.sunsak.accounts.user.service;
 import hackathon.bigone.sunsak.accounts.user.dto.SignupRequestDto;
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.accounts.user.repository.UserRepository;
-import hackathon.bigone.sunsak.global.validate.accounts.SingupValidator;
+import hackathon.bigone.sunsak.global.validate.accounts.SignupValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,10 +15,10 @@ import java.util.Optional;
 public class SignupService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final SingupValidator singupValidator;
+    private final SignupValidator signupValidator;
 
     public SiteUser create(SignupRequestDto dto){
-        singupValidator.validate(dto);
+        signupValidator.validate(dto);
 
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
 
