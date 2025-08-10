@@ -3,6 +3,7 @@ package hackathon.bigone.sunsak.foodbox.foodbox.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
+@JsonPropertyOrder({ "food_id", "name", "quantity", "expiryDate" }) //응답 조정
 @Getter
 @AllArgsConstructor
 @Builder
