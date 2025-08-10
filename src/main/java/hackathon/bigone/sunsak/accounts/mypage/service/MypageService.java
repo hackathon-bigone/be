@@ -1,5 +1,8 @@
-package hackathon.bigone.sunsak.accounts.mypage;
+package hackathon.bigone.sunsak.accounts.mypage.service;
 
+import hackathon.bigone.sunsak.accounts.mypage.dto.NoticeDto;
+import hackathon.bigone.sunsak.accounts.mypage.dto.PasswordChangeDto;
+import hackathon.bigone.sunsak.accounts.mypage.repository.NoticeRepository;
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.accounts.user.repository.UserRepository;
 import hackathon.bigone.sunsak.global.validate.accounts.SignupValidator;
@@ -8,12 +11,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class MypageService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final SignupValidator signupValidator;
+    private final NoticeRepository noticeRepository;
 
     @Transactional
     public void updateNickname(Long userId, String newNickname) {
@@ -45,5 +51,11 @@ public class MypageService {
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
     }
 
-
+    @Transactional
+    public List<NoticeDto> getAllNotices() {
+        return noticeRepository.findAllByOrderByIsFixedDescCreateDateDesc()
+                .stream()
+                .map(NoticeDto::from)
+                .toList();
+    }
 }
