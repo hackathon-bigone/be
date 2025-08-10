@@ -12,4 +12,5 @@ import java.util.List;
 public class FoodListResponse<T> {
     private String today;  //식품 조회 헤더 2025년 08월 09일로 보이게
     private List<T> items;
+    private String message; // 유통기한 임박 목록 없을 때 문구
 }
