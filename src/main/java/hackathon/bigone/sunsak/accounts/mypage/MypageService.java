@@ -42,7 +42,7 @@ public class MypageService {
 
         signupValidator.passwordValidate(dto.getNewPassword(), dto.getRepeatPw());
 
-        user.setPassword(dto.getNewPassword());
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
     }
 
 
