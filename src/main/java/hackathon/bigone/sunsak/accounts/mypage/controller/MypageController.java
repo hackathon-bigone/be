@@ -1,13 +1,18 @@
-package hackathon.bigone.sunsak.accounts.mypage;
+package hackathon.bigone.sunsak.accounts.mypage.controller;
 
+import hackathon.bigone.sunsak.accounts.mypage.dto.NoticeDto;
+import hackathon.bigone.sunsak.accounts.mypage.dto.PasswordChangeDto;
+import hackathon.bigone.sunsak.accounts.mypage.service.MypageService;
 import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
 import hackathon.bigone.sunsak.global.validate.accounts.SignupValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -66,5 +71,15 @@ public class MypageController {
         return ResponseEntity.ok(Map.of(
                "message", "비밀번호 변경이 완료되었습니다."
         ));
+   }
+
+   @GetMapping("/notice") // 전체 조회
+   public ResponseEntity<List<NoticeDto>> getAllNotices(Authentication authentication){
+       if (authentication == null || !authentication.isAuthenticated()) {
+           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+       }
+
+       List<NoticeDto> notices = mypageService.getAllNotices();
+       return ResponseEntity.ok(notices);
    }
 }

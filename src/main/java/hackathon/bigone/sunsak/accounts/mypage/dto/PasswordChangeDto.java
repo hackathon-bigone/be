@@ -1,4 +1,4 @@
-package hackathon.bigone.sunsak.accounts.mypage;
+package hackathon.bigone.sunsak.accounts.mypage.dto;
 
 import lombok.*;
 
