@@ -1,4 +1,4 @@
-package hackathon.bigone.sunsak.global.initData;
+package hackathon.bigone.sunsak.global.initData.foodbox;
 
 import hackathon.bigone.sunsak.foodbox.foodbox.entity.FoodBox;
 import hackathon.bigone.sunsak.foodbox.foodbox.repository.FoodBoxRepository;

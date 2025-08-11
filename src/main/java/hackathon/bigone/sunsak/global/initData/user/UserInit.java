@@ -1,4 +1,4 @@
-package hackathon.bigone.sunsak.global.initData;
+package hackathon.bigone.sunsak.global.initData.user;
 
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.accounts.user.repository.UserRepository;
