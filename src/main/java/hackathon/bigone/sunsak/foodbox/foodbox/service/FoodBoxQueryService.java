@@ -56,7 +56,7 @@ public class FoodBoxQueryService { //조회하는 기능
         return FoodListResponse.<FoodBoxResponse>builder()
                 .today(todayKor())
                 .items(items)
-                .message(items.isEmpty()? "유통기한 임박 목록이 없어요" : null)
+                .message(items.isEmpty()? "식품 목록을 추가해보세요" : null)
                 .build();
     }
 
