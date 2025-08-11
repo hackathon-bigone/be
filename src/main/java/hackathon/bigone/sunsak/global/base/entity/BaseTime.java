@@ -24,4 +24,8 @@ public abstract class BaseTime extends BaseEntity {
     public void setModified() {
         setModifyDate(LocalDateTime.now());
     }
+
+    public void setCreatedDateManually(LocalDateTime date) {
+        this.createDate = date;
+    }
 }
