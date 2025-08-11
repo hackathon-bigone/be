@@ -2,6 +2,7 @@ package hackathon.bigone.sunsak.accounts.mypage.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import hackathon.bigone.sunsak.accounts.mypage.entity.Notice;
 import lombok.*;
 
@@ -9,6 +10,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+@JsonPropertyOrder({ "notice_id", "title", "body", "displayDate", "isFixed" })
 @Getter
 @Setter
 @Builder
