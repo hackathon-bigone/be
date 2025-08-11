@@ -22,6 +22,6 @@ public class Step {
     private String stepDescription;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_postId")
+    @JoinColumn(name = "board_post_id")
     private Board board;
 }
