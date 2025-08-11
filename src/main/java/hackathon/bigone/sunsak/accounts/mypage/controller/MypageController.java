@@ -22,6 +22,7 @@ public class MypageController {
     private final SignupValidator signupValidator;
     private final MypageService mypageService;
 
+    //마이페이지 조회
     @GetMapping("")
     public ResponseEntity<?> getMypage(Authentication authentication){
         if(authentication==null){
@@ -36,6 +37,7 @@ public class MypageController {
         ));
    }
 
+   //닉네임 수정
    @PatchMapping("/nickname")
    public ResponseEntity<?> updateNickname(
            @AuthenticationPrincipal CustomUserDetail userDetail,
@@ -56,6 +58,7 @@ public class MypageController {
        ));
    }
 
+   //비밀번호 수정
    @PatchMapping("/password")
    public ResponseEntity<?> updatePassword(
            @AuthenticationPrincipal CustomUserDetail userDetail,
@@ -73,6 +76,7 @@ public class MypageController {
         ));
    }
 
+   //공지사항
    @GetMapping("/notice") // 전체 조회
    public ResponseEntity<List<NoticeDto>> getAllNotices(Authentication authentication){
        if (authentication == null || !authentication.isAuthenticated()) {
