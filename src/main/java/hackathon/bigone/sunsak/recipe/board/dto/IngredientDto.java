@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 
 public class IngredientDto {
-    private Long id;
-    private String name;
-    private String amount;
+    private Long ingredientId;
+    private String ingredientName;
+    private String ingredientAmount;
 }

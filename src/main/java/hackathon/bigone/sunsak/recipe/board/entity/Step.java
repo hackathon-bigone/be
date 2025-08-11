@@ -10,13 +10,16 @@ import lombok.Setter;
 public class Step {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long stepId;
 
     @Column(nullable= false)
     private int stepNumber;
 
+    @Column(nullable =false)
+    private String stepImageUrl;
+
     @Column(columnDefinition = "TEXT", nullable = false)
-    private String description;
+    private String stepDescription;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_postId")
