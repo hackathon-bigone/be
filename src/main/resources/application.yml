@@ -34,7 +34,14 @@ spring:
     lazy-initialization: true # 실행 빠르게 bean 지연 초기화, 대신 에러 체크 생략할 수도 있음
 
 jwt:
-  secret: ${JWT_KEY}
+  secret: ${JWT_SECRET}
+
+cloud:
+  aws:
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
 
 naver:
   ocr:
