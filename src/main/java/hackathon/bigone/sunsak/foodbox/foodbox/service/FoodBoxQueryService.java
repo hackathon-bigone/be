@@ -31,8 +31,7 @@ public class FoodBoxQueryService { //조회하는 기능
     private String todayKor() { return LocalDate.now(KST).format(KOREAN_DATE); } //헤더 날짜
 
     private static String toDLabel(int d) {
-        if (d > 0) return "D-" + d;
-        if (d == 0) return "D-DAY";
+        if (d >= 0) return "D-" + d; //D-0 으로 수정
         return "D+" + Math.abs(d);
     }
 
@@ -57,6 +56,7 @@ public class FoodBoxQueryService { //조회하는 기능
         return FoodListResponse.<FoodBoxResponse>builder()
                 .today(todayKor())
                 .items(items)
+                .message(items.isEmpty()? "유통기한 임박 목록이 없어요" : null)
                 .build();
     }
 
