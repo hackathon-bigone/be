@@ -53,9 +53,11 @@ public class Board {
     private List<Step> steps = new ArrayList<>();
 
     //카테고리
+    @ElementCollection(targetClass = RecipeCategory.class)
+    @CollectionTable(name = "board_categories", joinColumns = @JoinColumn(name = "board_post_id"))
     @Enumerated(EnumType.STRING)
     @Column(nullable = true)
-    private RecipeCategory category;
+    private List<RecipeCategory> categories = new ArrayList<>();
 
 
 }

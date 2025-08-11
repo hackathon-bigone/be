@@ -7,13 +7,14 @@ import java.util.List;
 @Getter
 @Setter
 public class BoardDto {
+    private Long postId;
     private String title;
     private String cookingTime;
-    private String mainImageUrl;
+    private String mainimageUrl;
     private List<StepDto> steps;
     private List<RecipeLinkDto> recipeLinks;
     private List<IngredientDto> ingredients;
-    private RecipeCategory category;
+    private List<RecipeCategory> categories;
     private String recipeDescription;
 
 }
