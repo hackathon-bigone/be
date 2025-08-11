@@ -9,12 +9,15 @@ import hackathon.bigone.sunsak.recipe.board.entity.Board;
 import hackathon.bigone.sunsak.recipe.board.entity.Ingredient;
 import hackathon.bigone.sunsak.recipe.board.entity.RecipeLink;
 import hackathon.bigone.sunsak.recipe.board.entity.Step;
+import hackathon.bigone.sunsak.recipe.board.enums.RecipeCategory;
 import hackathon.bigone.sunsak.recipe.board.repository.BoardRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +30,7 @@ public class BoardService {
         Board newBoard = new Board();
         newBoard.setTitle(boardDto.getTitle());
         newBoard.setCookingTime(boardDto.getCookingTime());
-        newBoard.setMainimageUrl(boardDto.getMainImageUrl());
-        newBoard.setCategory(boardDto.getCategory());
+        newBoard.setMainimageUrl(boardDto.getMainimageUrl());
         newBoard.setRecipeDescription(boardDto.getRecipeDescription());
         newBoard.setAuthor(author);
 
@@ -64,6 +66,10 @@ public class BoardService {
             });
         }
 
+        //카테고리
+        if (boardDto.getCategories() != null) {
+            newBoard.getCategories().addAll(boardDto.getCategories());
+        }
         return boardRepository.save(newBoard);
 
     }
@@ -81,8 +87,7 @@ public class BoardService {
         existingBoard.setTitle(boardDto.getTitle());
         existingBoard.setRecipeDescription(boardDto.getRecipeDescription());
         existingBoard.setCookingTime(boardDto.getCookingTime());
-        existingBoard.setMainimageUrl(boardDto.getMainImageUrl());
-        existingBoard.setCategory(boardDto.getCategory());
+        existingBoard.setMainimageUrl(boardDto.getMainimageUrl());
 
         // 단계(Steps) 업데이트
         existingBoard.getSteps().clear();
@@ -119,6 +124,74 @@ public class BoardService {
             });
         }
 
+        existingBoard.getCategories().clear();
+        if (boardDto.getCategories() != null) {
+            existingBoard.getCategories().addAll(boardDto.getCategories());
+        }
+
         return existingBoard;
+    }
+
+
+    // 모든 게시글(레시피) 조회
+    public List<BoardDto> findAllBoards() {
+        List<Board> boards = boardRepository.findAll();
+        return boards.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    // 특정 게시글(레시피) 조회
+    public BoardDto findBoardById(Long postId) {
+        Board board = boardRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
+        return convertToDto(board);
+    }
+
+    private BoardDto convertToDto(Board board) {
+        BoardDto boardDto = new BoardDto();
+
+        boardDto.setPostId(board.getPostId());
+        boardDto.setTitle(board.getTitle());
+        boardDto.setCookingTime(board.getCookingTime());
+        boardDto.setMainimageUrl(board.getMainimageUrl());
+        boardDto.setRecipeDescription(board.getRecipeDescription());
+
+        List<IngredientDto> ingredientDtos = board.getIngredients().stream()
+                .map(this::convertIngredientToDto)
+                .collect(Collectors.toList());
+        boardDto.setIngredients(ingredientDtos);
+
+        List<StepDto> stepDtos = board.getSteps().stream()
+                .map(this::convertStepToDto)
+                .collect(Collectors.toList());
+        boardDto.setSteps(stepDtos);
+
+        List<RecipeLinkDto> recipeLinkDtos = board.getRecipeLink().stream()
+                .map(this::convertRecipeLinkToDto)
+                .collect(Collectors.toList());
+        boardDto.setRecipeLinks(recipeLinkDtos);
+
+        boardDto.setCategories(board.getCategories());
+
+        return boardDto;
+    }
+    private IngredientDto convertIngredientToDto(Ingredient ingredient) {
+        IngredientDto ingredientDto = new IngredientDto();
+        ingredientDto.setIngredientName(ingredient.getIngredientName());
+        ingredientDto.setIngredientAmount(ingredient.getIngredientAmount());
+        return ingredientDto;
+    }
+    private StepDto convertStepToDto(Step step) {
+        StepDto stepDto = new StepDto();
+        stepDto.setStepNumber(step.getStepNumber());
+        stepDto.setStepDescription(step.getStepDescription());
+        return stepDto;
+    }
+
+    private  RecipeLinkDto convertRecipeLinkToDto(RecipeLink recipeLink) {
+        RecipeLinkDto recipeLinkDto = new RecipeLinkDto();
+        recipeLinkDto.setRecipelinkUrl(recipeLink.getRecipelinkUrl());
+        return recipeLinkDto;
     }
 }

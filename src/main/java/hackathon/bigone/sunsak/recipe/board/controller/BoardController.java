@@ -16,6 +16,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/recipe")
 @RequiredArgsConstructor
@@ -25,6 +27,17 @@ public class BoardController {
     private final BoardService boardService;
     private final UserRepository userRepository;
 
+    @GetMapping
+    public ResponseEntity<List<BoardDto>> getAllBoards() {
+        List<BoardDto> boards = boardService.findAllBoards();
+        return ResponseEntity.ok(boards);
+    }
+
+    @GetMapping("/{post_id}")
+    public ResponseEntity<BoardDto> getBoardById(@PathVariable Long postId){
+        BoardDto board = boardService.findBoardById(postId);
+        return ResponseEntity.ok(board);
+    }
     @PostMapping
     public ResponseEntity<String> createBoard(@RequestBody BoardDto boardDto,
                                                @AuthenticationPrincipal UserDetails userDetails) {
