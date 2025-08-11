@@ -1,10 +1,12 @@
 package hackathon.bigone.sunsak.accounts.mypage.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import hackathon.bigone.sunsak.accounts.mypage.entity.Notice;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 @Getter
 @Setter
@@ -15,17 +17,27 @@ public class NoticeDto {
     private String title;
     private String body;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy년 MM월 dd일")
+    @JsonIgnore
     private LocalDate createDate;
 
+    private String displayDate; //포맷 용
     private boolean isFixed; //게시판 고정
 
     public static NoticeDto from(Notice notice) {
-        return new NoticeDto(
-                notice.getTitle(),
-                notice.getBody(),
-                notice.getCreateDate(),
-                notice.isFixed()
-        );
+        LocalDate date = notice.getCreateDate().toLocalDate();
+        int currentYear = LocalDate.now(ZoneId.of("Asia/Seoul")).getYear();
+
+        String display = (date.getYear() == currentYear)
+                ? date.format(DateTimeFormatter.ofPattern("M월 d일"))
+                : date.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"));
+
+        return NoticeDto.builder()
+                .title(notice.getTitle())
+                .body(notice.getBody())
+                .createDate(date)
+                .isFixed(notice.isFixed())
+                .displayDate(display)
+                .build();
     }
+
 }

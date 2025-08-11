@@ -86,4 +86,18 @@ public class MypageController {
        List<NoticeDto> notices = mypageService.getAllNotices();
        return ResponseEntity.ok(notices);
    }
+
+   //상세 조회
+    @GetMapping("/notice/{noticeId}")
+    public ResponseEntity<NoticeDto> getNotice(
+            Authentication authentication,
+            @PathVariable Long noticeId
+    ){
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return mypageService.getNoticeById(noticeId)
+                .map(ResponseEntity::ok)                // 200 + DTO(JSON)
+                .orElseGet(() -> ResponseEntity.notFound().build()); // 404
+    }
 }
