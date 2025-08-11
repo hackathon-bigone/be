@@ -12,7 +12,7 @@ import org.springframework.core.annotation.Order;
 @Configuration
 @RequiredArgsConstructor
 public class NoticeInit {
-    private NoticeRepository noticeRepository;
+    private final NoticeRepository noticeRepository;
 
     @Bean
     @Order(6) //초기 데이터 실행 순서
