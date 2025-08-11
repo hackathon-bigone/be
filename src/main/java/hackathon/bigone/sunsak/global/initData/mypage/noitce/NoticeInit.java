@@ -16,7 +16,7 @@ public class NoticeInit {
 
     @Bean
     @Order(6) //초기 데이터 실행 순서
-    public ApplicationRunner initUsers(){
+    public ApplicationRunner initNotices(){
         return args -> {
             if (noticeRepository.count() == 0) {
                 insertDefaultNotices();
