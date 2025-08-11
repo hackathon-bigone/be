@@ -9,8 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 
-import java.time.LocalDateTime;
-
 @Configuration
 @RequiredArgsConstructor
 public class NoticeInit {
@@ -42,7 +40,7 @@ public class NoticeInit {
                 """,
                 false
         );
-        notice1.setCreatedDateManually(LocalDateTime.of(2024, 12, 1, 0, 0));
+        //notice1.setCreatedDateManually(LocalDateTime.of(2024, 12, 1, 0, 0));
         noticeRepository.save(notice1);
 
         Notice notice2 = new Notice(
@@ -62,7 +60,7 @@ public class NoticeInit {
                 true
         );
 
-        notice2.setCreatedDateManually(LocalDateTime.of(2025,8,1,0,0,0));
+        //notice2.setCreatedDateManually(LocalDateTime.of(2025,8,1,0,0,0));
         noticeRepository.save(notice2);
     }
 }
