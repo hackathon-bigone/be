@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -55,7 +56,13 @@ public class MypageService {
     public List<NoticeDto> getAllNotices() {
         return noticeRepository.findAllByOrderByIsFixedDescCreateDateDesc()
                 .stream()
-                .map(NoticeDto::from)
+                .map(NoticeDto::from) // from()에서 이미 displayDate까지 세팅
                 .toList();
+    }
+
+    @Transactional
+    public  Optional<NoticeDto> getNoticeById(Long noticeId) {
+        return noticeRepository.findById(noticeId)
+                .map(NoticeDto::from);
     }
 }
