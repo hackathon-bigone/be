@@ -9,7 +9,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @MappedSuperclass
 @Getter
@@ -17,11 +17,11 @@ import java.time.LocalDate;
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseTime extends BaseEntity {
     @CreatedDate
-    private LocalDate createDate;
+    private LocalDateTime createDate;
     @LastModifiedDate
-    private LocalDate modifyDate; //LocalDateTime을 LocalDate로 수정
+    private LocalDateTime modifyDate;
 
     public void setModified() {
-        setModifyDate(LocalDate.now());
+        setModifyDate(LocalDateTime.now());
     }
 }
