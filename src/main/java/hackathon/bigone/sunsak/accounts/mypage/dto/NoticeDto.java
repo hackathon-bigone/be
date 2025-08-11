@@ -15,7 +15,7 @@ import java.time.format.DateTimeFormatter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NoticeDto {
-    @JsonProperty("user_id")
+    @JsonProperty("notice_id")
     private Long noticeId;
     private String title;
     private String body;
