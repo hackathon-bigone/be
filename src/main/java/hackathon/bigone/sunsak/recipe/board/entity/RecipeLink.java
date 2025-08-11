@@ -10,10 +10,10 @@ import lombok.Setter;
 public class RecipeLink {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long recipelinkId;
 
     @Column(nullable = false, length = 500)
-    private String url;
+    private String recipelinkUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_postId")

@@ -10,13 +10,13 @@ import lombok.Setter;
 public class Ingredient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long ingredientId;
 
     @Column(nullable = false, length = 100)
-    private String name;
+    private String ingredientName;
 
     @Column(nullable = true, length = 50)
-    private String amount; // "100g", "1개" 등 수량 정보
+    private String ingredientAmount; // "100g", "1개" 등 수량 정보
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_postId")

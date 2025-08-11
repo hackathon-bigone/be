@@ -26,19 +26,18 @@ public class BoardService {
     public Board create(BoardDto boardDto, SiteUser author) {
         Board newBoard = new Board();
         newBoard.setTitle(boardDto.getTitle());
-        newBoard.setServing(boardDto.getServing());
         newBoard.setCookingTime(boardDto.getCookingTime());
-        newBoard.setImageUrl(boardDto.getImageUrl());
+        newBoard.setMainimageUrl(boardDto.getMainImageUrl());
         newBoard.setCategory(boardDto.getCategory());
-        newBoard.setDescription(boardDto.getDescription());
+        newBoard.setRecipeDescription(boardDto.getRecipeDescription());
         newBoard.setAuthor(author);
 
         // 재료
         if (boardDto.getIngredients() != null) {
             boardDto.getIngredients().forEach(ingredientDto -> {
                 Ingredient newIngredient = new Ingredient();
-                newIngredient.setName(ingredientDto.getName());
-                newIngredient.setAmount(ingredientDto.getAmount());
+                newIngredient.setIngredientName(ingredientDto.getIngredientName());
+                newIngredient.setIngredientAmount(ingredientDto.getIngredientAmount());
                 newIngredient.setBoard(newBoard);
                 newBoard.getIngredients().add(newIngredient);
             });
@@ -49,7 +48,7 @@ public class BoardService {
             boardDto.getSteps().forEach(stepDto -> {
                 Step newStep = new Step();
                 newStep.setStepNumber(stepDto.getStepNumber());
-                newStep.setDescription(stepDto.getDescription());
+                newStep.setStepDescription(stepDto.getStepDescription());
                 newStep.setBoard(newBoard);
                 newBoard.getSteps().add(newStep);
             });
@@ -59,7 +58,7 @@ public class BoardService {
         if (boardDto.getRecipeLinks() != null) {
             boardDto.getRecipeLinks().forEach(recipeLinkDto -> {
                 RecipeLink newLink = new RecipeLink();
-                newLink.setUrl(recipeLinkDto.getUrl());
+                newLink.setRecipelinkUrl(recipeLinkDto.getRecipelinkUrl());
                 newLink.setBoard(newBoard);
                 newBoard.getRecipeLink().add(newLink);
             });
@@ -80,10 +79,9 @@ public class BoardService {
         }
 
         existingBoard.setTitle(boardDto.getTitle());
-        existingBoard.setDescription(boardDto.getDescription());
-        existingBoard.setServing(boardDto.getServing());
+        existingBoard.setRecipeDescription(boardDto.getRecipeDescription());
         existingBoard.setCookingTime(boardDto.getCookingTime());
-        existingBoard.setImageUrl(boardDto.getImageUrl());
+        existingBoard.setMainimageUrl(boardDto.getMainImageUrl());
         existingBoard.setCategory(boardDto.getCategory());
 
         // 단계(Steps) 업데이트
@@ -92,7 +90,7 @@ public class BoardService {
             boardDto.getSteps().forEach(stepDto -> {
                 Step newStep = new Step();
                 newStep.setStepNumber(stepDto.getStepNumber());
-                newStep.setDescription(stepDto.getDescription());
+                newStep.setStepDescription(stepDto.getStepDescription());
                 newStep.setBoard(existingBoard);
                 existingBoard.getSteps().add(newStep);
             });
@@ -103,8 +101,8 @@ public class BoardService {
         if (boardDto.getIngredients() != null) {
             boardDto.getIngredients().forEach(ingredientDto -> {
                 Ingredient newIngredient = new Ingredient();
-                newIngredient.setName(ingredientDto.getName());
-                newIngredient.setAmount(ingredientDto.getAmount());
+                newIngredient.setIngredientName(ingredientDto.getIngredientName());
+                newIngredient.setIngredientAmount(ingredientDto.getIngredientAmount());
                 newIngredient.setBoard(existingBoard);
                 existingBoard.getIngredients().add(newIngredient);
             });
@@ -115,7 +113,7 @@ public class BoardService {
         if (boardDto.getRecipeLinks() != null) {
             boardDto.getRecipeLinks().forEach(recipeLinkDto -> {
                 RecipeLink newLink = new RecipeLink();
-                newLink.setUrl(recipeLinkDto.getUrl());
+                newLink.setRecipelinkUrl(recipeLinkDto.getRecipelinkUrl());
                 newLink.setBoard(existingBoard);
                 existingBoard.getRecipeLink().add(newLink);
             });

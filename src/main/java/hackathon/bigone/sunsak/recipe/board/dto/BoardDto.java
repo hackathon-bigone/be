@@ -8,13 +8,12 @@ import java.util.List;
 @Setter
 public class BoardDto {
     private String title;
-    private String serving;
     private String cookingTime;
-    private String imageUrl;
+    private String mainImageUrl;
     private List<StepDto> steps;
     private List<RecipeLinkDto> recipeLinks;
     private List<IngredientDto> ingredients;
     private RecipeCategory category;
-    private String description;
+    private String recipeDescription;
 
 }

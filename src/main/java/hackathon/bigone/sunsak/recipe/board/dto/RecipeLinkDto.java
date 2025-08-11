@@ -7,6 +7,6 @@ import java.util.List;
 @Setter
 @Getter
 public class RecipeLinkDto {
-    private Long id;
-    private String url;
+    private Long recipelinkId;
+    private String recipelinkUrl;
 }

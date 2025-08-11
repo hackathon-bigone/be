@@ -22,18 +22,15 @@ public class Board {
     @Column(nullable=false, length = 100)
     private String title;
 
-    //양
-    @Column(nullable=false, length = 100)
-    private String serving;
-
     //조리시간
     @Column(nullable=false, length = 100)
     private String cookingTime;
 
     //대표사진
     @Column(nullable = true, length = 500)
-    private String imageUrl;
+    private String mainimageUrl;
 
+    //재료
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Ingredient> ingredients = new ArrayList<>();
 
@@ -43,7 +40,7 @@ public class Board {
 
     //레시피설명
     @Column(columnDefinition = "TEXT", nullable = false)
-    private String description;
+    private String recipeDescription;
 
     //작성자
     @ManyToOne

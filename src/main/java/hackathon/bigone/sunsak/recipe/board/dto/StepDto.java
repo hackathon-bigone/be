@@ -6,6 +6,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class StepDto {
-    private int StepNumber;
-    private String description;
+    private Long stepId;
+    private int stepNumber;
+    private String stepDescription;
+    private String stepImageUrl;
 }
