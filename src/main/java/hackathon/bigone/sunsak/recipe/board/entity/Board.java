@@ -60,4 +60,12 @@ public class Board {
     private List<RecipeCategory> categories = new ArrayList<>();
 
 
+    //좋아요 리스트
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecipeLike> likes;
+
+    //스크랩 리스트
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecipeScrap> scraps;
+
 }

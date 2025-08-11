@@ -5,18 +5,18 @@ import hackathon.bigone.sunsak.recipe.board.dto.BoardDto;
 import hackathon.bigone.sunsak.recipe.board.dto.IngredientDto;
 import hackathon.bigone.sunsak.recipe.board.dto.RecipeLinkDto;
 import hackathon.bigone.sunsak.recipe.board.dto.StepDto;
-import hackathon.bigone.sunsak.recipe.board.entity.Board;
-import hackathon.bigone.sunsak.recipe.board.entity.Ingredient;
-import hackathon.bigone.sunsak.recipe.board.entity.RecipeLink;
-import hackathon.bigone.sunsak.recipe.board.entity.Step;
+import hackathon.bigone.sunsak.recipe.board.entity.*;
 import hackathon.bigone.sunsak.recipe.board.enums.RecipeCategory;
 import hackathon.bigone.sunsak.recipe.board.repository.BoardRepository;
+import hackathon.bigone.sunsak.recipe.board.repository.LikeRepository;
+import hackathon.bigone.sunsak.recipe.board.repository.ScrapRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -193,5 +193,60 @@ public class BoardService {
         RecipeLinkDto recipeLinkDto = new RecipeLinkDto();
         recipeLinkDto.setRecipelinkUrl(recipeLink.getRecipelinkUrl());
         return recipeLinkDto;
+    }
+
+    private final LikeRepository likeRepository;
+    private final ScrapRepository scrapRepository;
+    public void toggleLike(Long postId, SiteUser user){
+        Board board = boardRepository.findById(postId).orElseThrow();
+        Optional<RecipeLike> existingLike = likeRepository.findByBoardAndUser(board, user);
+
+        if(existingLike.isPresent()) {
+            likeRepository.delete(existingLike.get());
+        }
+        else {
+            RecipeLike newLike = new RecipeLike();
+            newLike.setBoard(board);
+            newLike.setUser(user);
+            likeRepository.save(newLike);
+        }
+    }
+
+    public void togglescrap(Long postId, SiteUser user){
+        Board board = boardRepository.findById(postId).orElseThrow();
+        Optional<RecipeScrap> existingScrap = scrapRepository.findByBoardAndUser(board, user);
+
+        if (existingScrap.isPresent()) {
+            scrapRepository.delete(existingScrap.get());
+        }
+
+        else{
+            RecipeScrap newScrap = new RecipeScrap();
+            newScrap.setBoard(board);
+            newScrap.setUser(user);
+            scrapRepository.save(newScrap);
+        }
+    }
+
+    public List<BoardDto> getLikedBoardsByUser(SiteUser user) {
+        List<RecipeLike> likes = likeRepository.findByUser(user);
+        List<Board> boards = likes.stream()
+                .map(RecipeLike::getBoard)
+                .collect(Collectors.toList());
+
+        return boards.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<BoardDto> getScrapBoardsByUser(SiteUser user) {
+        List<RecipeScrap> scraps = scrapRepository.findByUser(user);
+        List<Board> boards = scraps.stream()
+                .map(RecipeScrap::getBoard)
+                .collect(Collectors.toList());
+
+        return boards.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 }
