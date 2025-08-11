@@ -1,6 +1,7 @@
 package hackathon.bigone.sunsak.accounts.mypage.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import hackathon.bigone.sunsak.accounts.mypage.entity.Notice;
 import lombok.*;
 
@@ -14,6 +15,8 @@ import java.time.format.DateTimeFormatter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NoticeDto {
+    @JsonProperty("notice_id")
+    private Long noticeId;
     private String title;
     private String body;
 
@@ -32,6 +35,7 @@ public class NoticeDto {
                 : date.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"));
 
         return NoticeDto.builder()
+                .noticeId(notice.getId())
                 .title(notice.getTitle())
                 .body(notice.getBody())
                 .createDate(date)
