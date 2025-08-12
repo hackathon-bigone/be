@@ -212,7 +212,7 @@ public class BoardService {
         }
     }
 
-    public void togglescrap(Long postId, SiteUser user){
+    public void toggleScrap(Long postId, SiteUser user){
         Board board = boardRepository.findById(postId).orElseThrow();
         Optional<RecipeScrap> existingScrap = scrapRepository.findByBoardAndUser(board, user);
 
@@ -232,7 +232,7 @@ public class BoardService {
         List<RecipeLike> likes = likeRepository.findByUser(user);
         List<Board> boards = likes.stream()
                 .map(RecipeLike::getBoard)
-                .collect(Collectors.toList());
+                .toList();
 
         return boards.stream()
                 .map(this::convertToDto)
@@ -243,7 +243,7 @@ public class BoardService {
         List<RecipeScrap> scraps = scrapRepository.findByUser(user);
         List<Board> boards = scraps.stream()
                 .map(RecipeScrap::getBoard)
-                .collect(Collectors.toList());
+                .toList();
 
         return boards.stream()
                 .map(this::convertToDto)
