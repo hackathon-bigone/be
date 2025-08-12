@@ -12,13 +12,17 @@ import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
 import hackathon.bigone.sunsak.global.validate.accounts.SignupValidator;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardDto;
 import hackathon.bigone.sunsak.recipe.board.service.BoardService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -123,6 +127,7 @@ public class MypageController {
         return ResponseEntity.ok(scrapBoards);
     }
 
+    @GetMapping("/qna")
     public ResponseEntity<List<QuestionResponse>> getMyQuestions(
             @AuthenticationPrincipal CustomUserDetail userDetail
     ){
@@ -135,15 +140,20 @@ public class MypageController {
     }
 
     //qna 작성
-    @PostMapping("/qna")
+    @PostMapping(value = "/qna", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<QuestionResponse> createQuestion(
             @AuthenticationPrincipal CustomUserDetail userDetail,
-            @RequestBody QuestionRequest req
-    ){
+            @Valid @RequestPart("data") QuestionRequest req,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images
+    )throws IOException {
         if(userDetail == null){
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+        if (images != null && images.size() > 4){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         Long userId = userDetail.getId();
-        return ResponseEntity.ok(qnaService.createQuestion(userId, req));
+        return ResponseEntity.ok(qnaService.createQuestion(userId, req, images));
     }
 }
