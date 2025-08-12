@@ -4,11 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import hackathon.bigone.sunsak.accounts.mypage.entity.Notice;
+import hackathon.bigone.sunsak.global.util.DisplayDateUtil;
 import lombok.*;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 
 @JsonPropertyOrder({ "notice_id", "title", "body", "displayDate", "isFixed" })
 @Getter
@@ -23,18 +22,13 @@ public class NoticeDto {
     private String body;
 
     @JsonIgnore
-    private LocalDate createDate;
+    private LocalDateTime createDate;
 
     private String displayDate; //포맷 용
     private boolean isFixed; //게시판 고정
 
     public static NoticeDto from(Notice notice) {
-        LocalDate date = notice.getCreateDate().toLocalDate();
-        int currentYear = LocalDate.now(ZoneId.of("Asia/Seoul")).getYear();
-
-        String display = (date.getYear() == currentYear)
-                ? date.format(DateTimeFormatter.ofPattern("M월 d일"))
-                : date.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"));
+        LocalDateTime date = notice.getCreateDate();
 
         return NoticeDto.builder()
                 .noticeId(notice.getId())
@@ -42,7 +36,7 @@ public class NoticeDto {
                 .body(notice.getBody())
                 .createDate(date)
                 .isFixed(notice.isFixed())
-                .displayDate(display)
+                .displayDate(DisplayDateUtil.toDisplay(date))
                 .build();
     }
 
