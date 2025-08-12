@@ -1,4 +1,4 @@
-package hackathon.bigone.sunsak.accounts.mypage.dto;
+package hackathon.bigone.sunsak.accounts.mypage.dto.question;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -18,5 +18,4 @@ public class QuestionRequest {
 
     @NotBlank
     private String body;
-
 }

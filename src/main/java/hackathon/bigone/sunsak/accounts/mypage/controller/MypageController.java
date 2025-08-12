@@ -2,8 +2,9 @@ package hackathon.bigone.sunsak.accounts.mypage.controller;
 
 import hackathon.bigone.sunsak.accounts.mypage.dto.NoticeDto;
 import hackathon.bigone.sunsak.accounts.mypage.dto.PasswordChangeDto;
-import hackathon.bigone.sunsak.accounts.mypage.dto.QuestionRequest;
-import hackathon.bigone.sunsak.accounts.mypage.dto.QuestionResponse;
+import hackathon.bigone.sunsak.accounts.mypage.dto.question.QuestionDetailResponse;
+import hackathon.bigone.sunsak.accounts.mypage.dto.question.QuestionRequest;
+import hackathon.bigone.sunsak.accounts.mypage.dto.question.QuestionResponse;
 import hackathon.bigone.sunsak.accounts.mypage.repository.QuestionRepository;
 import hackathon.bigone.sunsak.accounts.mypage.service.MypageService;
 import hackathon.bigone.sunsak.accounts.mypage.service.QnaService;
@@ -127,8 +128,9 @@ public class MypageController {
         return ResponseEntity.ok(scrapBoards);
     }
 
+    //전체 조회
     @GetMapping("/qna")
-    public ResponseEntity<List<QuestionResponse>> getMyQuestions(
+    public ResponseEntity<QuestionResponse> getQuestions(
             @AuthenticationPrincipal CustomUserDetail userDetail
     ){
         if(userDetail==null){
@@ -136,12 +138,24 @@ public class MypageController {
         }
         Long userId = userDetail.getId();
 
-        return ResponseEntity.ok(qnaService.getMyQuestions(userId));
+        return ResponseEntity.ok(qnaService.getQuestions(userId));
+    }
+
+    //상세 조회
+    @GetMapping("/qna/{questionId}")
+    public ResponseEntity<QuestionDetailResponse> getMyQuestion(
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            @PathVariable Long questionId
+    ){
+        if (userDetail == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        return ResponseEntity.ok(qnaService.getMyQuestion(userDetail.getId(), questionId));
     }
 
     //qna 작성, form-data 전체 다!
     @PostMapping(value = "/qna", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<QuestionResponse> createQuestion(
+    public ResponseEntity<QuestionDetailResponse> createQuestion(
             @AuthenticationPrincipal CustomUserDetail userDetail,
             @Valid @ModelAttribute QuestionRequest req,
             @RequestPart(value = "images", required = false) List<MultipartFile> images
