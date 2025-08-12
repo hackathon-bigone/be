@@ -3,8 +3,11 @@ package hackathon.bigone.sunsak.accounts.mypage.controller;
 import hackathon.bigone.sunsak.accounts.mypage.dto.NoticeDto;
 import hackathon.bigone.sunsak.accounts.mypage.dto.PasswordChangeDto;
 import hackathon.bigone.sunsak.accounts.mypage.service.MypageService;
+import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
 import hackathon.bigone.sunsak.global.validate.accounts.SignupValidator;
+import hackathon.bigone.sunsak.recipe.board.dto.BoardDto;
+import hackathon.bigone.sunsak.recipe.board.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +24,7 @@ import java.util.Map;
 public class MypageController {
     private final SignupValidator signupValidator;
     private final MypageService mypageService;
+    private final BoardService boardService; //레시피
 
     //마이페이지 조회
     @GetMapping("")
@@ -99,5 +103,17 @@ public class MypageController {
         return mypageService.getNoticeById(noticeId)
                 .map(ResponseEntity::ok)                // 200 + DTO(JSON)
                 .orElseGet(() -> ResponseEntity.notFound().build()); // 404
+    }
+
+    //스크랩
+    @GetMapping("/scrap")
+    public ResponseEntity<List<BoardDto>> getMyScrapBoards(@AuthenticationPrincipal CustomUserDetail userDetail){
+        if(userDetail == null){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        SiteUser currentUser = userDetail.getUser();
+
+        List<BoardDto> scrapBoards = boardService.getScrapBoardsByUser(currentUser);
+        return ResponseEntity.ok(scrapBoards);
     }
 }
