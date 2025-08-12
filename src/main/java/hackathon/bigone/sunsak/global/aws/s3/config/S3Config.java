@@ -1,4 +1,4 @@
-package hackathon.bigone.sunsak.global.aws.s3;
+package hackathon.bigone.sunsak.global.aws.s3.config;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Regions;
