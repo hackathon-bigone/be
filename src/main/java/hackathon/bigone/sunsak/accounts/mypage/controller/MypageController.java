@@ -139,11 +139,11 @@ public class MypageController {
         return ResponseEntity.ok(qnaService.getMyQuestions(userId));
     }
 
-    //qna 작성
+    //qna 작성, form-data 전체 다!
     @PostMapping(value = "/qna", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<QuestionResponse> createQuestion(
             @AuthenticationPrincipal CustomUserDetail userDetail,
-            @Valid @RequestPart("data") QuestionRequest req,
+            @Valid @ModelAttribute QuestionRequest req,
             @RequestPart(value = "images", required = false) List<MultipartFile> images
     )throws IOException {
         if(userDetail == null){

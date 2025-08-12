@@ -47,7 +47,6 @@ public class QnaService {
                 }
             }
 
-
             Question question = Question
                     .builder()
                     .title(req.getTitle())
@@ -67,6 +66,7 @@ public class QnaService {
             res.setImageUrls(viewUrls);
 
             return res;
+
         } catch (Exception e) {
             // DB 저장 실패 등 발생 시, 이미 업로드된 S3 객체 정리
             for (String key : keys) {
