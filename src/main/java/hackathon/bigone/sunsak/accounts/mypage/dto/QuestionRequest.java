@@ -7,8 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @AllArgsConstructor
@@ -21,6 +19,4 @@ public class QuestionRequest {
     @NotBlank
     private String body;
 
-    @Size(max = 4) // 이미지 최대 4장
-    private List<String> imageUrls;
 }
