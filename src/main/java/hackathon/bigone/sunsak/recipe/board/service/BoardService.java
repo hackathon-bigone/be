@@ -1,38 +1,52 @@
 package hackathon.bigone.sunsak.recipe.board.service;
 
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
+import hackathon.bigone.sunsak.global.aws.s3.service.S3Uploader;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardDto;
 import hackathon.bigone.sunsak.recipe.board.dto.IngredientDto;
 import hackathon.bigone.sunsak.recipe.board.dto.RecipeLinkDto;
 import hackathon.bigone.sunsak.recipe.board.dto.StepDto;
 import hackathon.bigone.sunsak.recipe.board.entity.*;
-import hackathon.bigone.sunsak.recipe.board.enums.RecipeCategory;
 import hackathon.bigone.sunsak.recipe.board.repository.BoardRepository;
 import hackathon.bigone.sunsak.recipe.board.repository.LikeRepository;
 import hackathon.bigone.sunsak.recipe.board.repository.ScrapRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BoardService {
 
     private final BoardRepository boardRepository;
+    private final LikeRepository LikeRepository;
+    private final ScrapRepository scrapRepository;
+    private final S3Uploader s3Uploader;
 
     @Transactional
-    public Board create(BoardDto boardDto, SiteUser author) {
+    public Board createBoard(BoardDto boardDto, SiteUser author) throws IOException { // IOException 예외를 던짐
         Board newBoard = new Board();
         newBoard.setTitle(boardDto.getTitle());
         newBoard.setCookingTime(boardDto.getCookingTime());
-        newBoard.setMainimageUrl(boardDto.getMainimageUrl());
         newBoard.setRecipeDescription(boardDto.getRecipeDescription());
         newBoard.setAuthor(author);
+
+        if(boardDto.getMainImageFile() != null && !boardDto.getMainImageFile().isEmpty()) {
+            String imageUrl = s3Uploader.uploadOne("recipe", boardDto.getMainImageFile());
+            newBoard.setMainImageUrl(imageUrl);
+        }
+
 
         // 재료
         if (boardDto.getIngredients() != null) {
@@ -70,24 +84,23 @@ public class BoardService {
         if (boardDto.getCategories() != null) {
             newBoard.getCategories().addAll(boardDto.getCategories());
         }
+
         return boardRepository.save(newBoard);
 
     }
+        @Transactional
+        public Board updateBoard(Long postId, BoardDto boardDto, SiteUser currentUser) {
+            Board existingBoard = boardRepository.findById(postId)
+                    .orElseThrow(() -> new EntityNotFoundException("Board not found with id: " + postId));
 
-    @Transactional
-    public Board updateBoard(Long postId, BoardDto boardDto, SiteUser currentUser) {
-        Board existingBoard = boardRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("Board not found with id: " + postId));
-
-        // 게시글 작성자와 현재 로그인한 사용자가 같은지 확인
-        if (!existingBoard.getAuthor().equals(currentUser)) {
-            throw new IllegalStateException("이 게시글을 수정할 권한이 없습니다.");
-        }
+            if (!existingBoard.getAuthor().equals(currentUser)) {
+                throw new IllegalStateException("이 게시글을 수정할 권한이 없습니다.");
+            }
 
         existingBoard.setTitle(boardDto.getTitle());
         existingBoard.setRecipeDescription(boardDto.getRecipeDescription());
         existingBoard.setCookingTime(boardDto.getCookingTime());
-        existingBoard.setMainimageUrl(boardDto.getMainimageUrl());
+        existingBoard.setMainImageUrl(boardDto.getMainImageUrl());
 
         // 단계(Steps) 업데이트
         existingBoard.getSteps().clear();
@@ -154,8 +167,13 @@ public class BoardService {
         boardDto.setPostId(board.getPostId());
         boardDto.setTitle(board.getTitle());
         boardDto.setCookingTime(board.getCookingTime());
-        boardDto.setMainimageUrl(board.getMainimageUrl());
         boardDto.setRecipeDescription(board.getRecipeDescription());
+
+        String s3Key = board.getMainImageUrl();
+        if (s3Key != null && !s3Key.isEmpty()) {
+            String imageUrl = s3Uploader.presignedGetUrl(s3Key, Duration.ofMinutes(10)).toString();
+            boardDto.setMainImageUrl(imageUrl);
+        }
 
         List<IngredientDto> ingredientDtos = board.getIngredients().stream()
                 .map(this::convertIngredientToDto)
@@ -196,7 +214,6 @@ public class BoardService {
     }
 
     private final LikeRepository likeRepository;
-    private final ScrapRepository scrapRepository;
     public void toggleLike(Long postId, SiteUser user){
         Board board = boardRepository.findById(postId).orElseThrow();
         Optional<RecipeLike> existingLike = likeRepository.findByBoardAndUser(board, user);
