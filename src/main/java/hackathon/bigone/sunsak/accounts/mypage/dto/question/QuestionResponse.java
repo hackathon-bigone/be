@@ -14,4 +14,5 @@ import java.util.List;
 public class QuestionResponse {
     private long count;
     private List<QuestionListResponse> items;
+    private String message;
 }
