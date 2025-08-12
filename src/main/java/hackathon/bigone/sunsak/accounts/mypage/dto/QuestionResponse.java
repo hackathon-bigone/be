@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class QuestionDto {
+public class QuestionResponse {
     @JsonProperty("question_id")
     private Long qId;
     private String title;
@@ -28,13 +28,15 @@ public class QuestionDto {
     private String displayDate;
     private String answerStatus;
 
-    public static QuestionDto from(Question q) {
+    private AnswerDto answer;
+
+    public static QuestionResponse from(Question q) {
         LocalDateTime date = q.getCreateDate();
-        String status = (q.getAnswers() != null)
+        String status = (q.getAnswer() != null)
                 ? "답변완료"
                 : "답변중";
 
-        return QuestionDto.builder()
+        return QuestionResponse.builder()
                 .qId(q.getId())
                 .title(q.getTitle())
                 .body(q.getBody())
@@ -42,6 +44,7 @@ public class QuestionDto {
                 .createDate(date)
                 .displayDate(DisplayDateUtil.toDisplay(date))
                 .answerStatus(status)
+                .answer(AnswerDto.from(q.getAnswer()))
                 .build();
     }
 }

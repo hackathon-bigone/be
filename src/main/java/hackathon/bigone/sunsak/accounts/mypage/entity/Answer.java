@@ -28,4 +28,11 @@ public class Answer extends BaseTime {
     @JoinColumn(name = "user_id")
     private SiteUser author;
 
+    public void setQuestion(Question question) {  // 양방향 편의 메서드
+        this.question = question;
+        if (question != null && question.getAnswer() != this) {
+            question.setAnswer(this);
+        }
+    }
+
 }
