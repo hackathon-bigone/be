@@ -90,8 +90,9 @@ public class QnaService {
                 .toList();
 
         long count = items.size();
+        String message = count == 0 ? "문의 내역이 없어요" : null;
 
-        return new QuestionResponse(count,items);
+        return new QuestionResponse(count,items, message);
     }
 
     //문의 상세 조회
