@@ -28,7 +28,7 @@ public class Board {
 
     //대표사진
     @Column(nullable = true, length = 500)
-    private String mainimageUrl;
+    private String mainImageUrl;
 
     //재료
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
