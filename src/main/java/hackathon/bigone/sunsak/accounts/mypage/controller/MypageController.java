@@ -2,7 +2,11 @@ package hackathon.bigone.sunsak.accounts.mypage.controller;
 
 import hackathon.bigone.sunsak.accounts.mypage.dto.NoticeDto;
 import hackathon.bigone.sunsak.accounts.mypage.dto.PasswordChangeDto;
+import hackathon.bigone.sunsak.accounts.mypage.dto.QuestionRequest;
+import hackathon.bigone.sunsak.accounts.mypage.dto.QuestionResponse;
+import hackathon.bigone.sunsak.accounts.mypage.repository.QuestionRepository;
 import hackathon.bigone.sunsak.accounts.mypage.service.MypageService;
+import hackathon.bigone.sunsak.accounts.mypage.service.QnaService;
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
 import hackathon.bigone.sunsak.global.validate.accounts.SignupValidator;
@@ -25,6 +29,8 @@ public class MypageController {
     private final SignupValidator signupValidator;
     private final MypageService mypageService;
     private final BoardService boardService; //레시피
+    private final QnaService qnaService;
+    private final QuestionRepository questionRepository;
 
     //마이페이지 조회
     @GetMapping("")
@@ -115,5 +121,29 @@ public class MypageController {
 
         List<BoardDto> scrapBoards = boardService.getScrapBoardsByUser(currentUser);
         return ResponseEntity.ok(scrapBoards);
+    }
+
+    public ResponseEntity<List<QuestionResponse>> getMyQuestions(
+            @AuthenticationPrincipal CustomUserDetail userDetail
+    ){
+        if(userDetail==null){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Long userId = userDetail.getId();
+
+        return ResponseEntity.ok(qnaService.getMyQuestions(userId));
+    }
+
+    //qna 작성
+    @PostMapping("/qna")
+    public ResponseEntity<QuestionResponse> createQuestion(
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            @RequestBody QuestionRequest req
+    ){
+        if(userDetail == null){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Long userId = userDetail.getId();
+        return ResponseEntity.ok(qnaService.createQuestion(userId, req));
     }
 }
