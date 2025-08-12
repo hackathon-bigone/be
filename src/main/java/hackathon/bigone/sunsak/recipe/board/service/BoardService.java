@@ -11,7 +11,7 @@ import hackathon.bigone.sunsak.recipe.board.repository.BoardRepository;
 import hackathon.bigone.sunsak.recipe.board.repository.LikeRepository;
 import hackathon.bigone.sunsak.recipe.board.repository.ScrapRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
@@ -227,7 +227,7 @@ public class BoardService {
             scrapRepository.save(newScrap);
         }
     }
-
+    @Transactional(readOnly = true)
     public List<BoardDto> getLikedBoardsByUser(SiteUser user) {
         List<RecipeLike> likes = likeRepository.findByUser(user);
         List<Board> boards = likes.stream()
@@ -238,7 +238,7 @@ public class BoardService {
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
-
+    @Transactional(readOnly = true)
     public List<BoardDto> getScrapBoardsByUser(SiteUser user) {
         List<RecipeScrap> scraps = scrapRepository.findByUser(user);
         List<Board> boards = scraps.stream()
