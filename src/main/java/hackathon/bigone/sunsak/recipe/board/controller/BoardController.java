@@ -9,16 +9,18 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("/recipe")
 @RequiredArgsConstructor
 
@@ -61,6 +63,41 @@ public class BoardController {
 
         return ResponseEntity.ok(updatedBoard);
         }
+
+    //좋아요
+    @PostMapping("{postId}/like")
+    public ResponseEntity<String> toggleLike(@PathVariable Long postId, @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok("좋아요 상태가 변경되었습니다.");
+    }
+
+    @PostMapping("/{postId}/scrap")
+    public ResponseEntity<String> toggleScrap(@PathVariable Long postId, @AuthenticationPrincipal UserDetails userDetails){
+        return ResponseEntity.ok("스크랩 상태가 변경되었습니다.");
+    }
+
+    @GetMapping("/mypage/likes")
+    public ResponseEntity<List<BoardDto>> getMyLikedBoards(@AuthenticationPrincipal UserDetails userDetails){
+        if(userDetails == null){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        SiteUser currentUser = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+
+        List<BoardDto> likedBoards = boardService.getLikedBoardsByUser(currentUser);
+        return ResponseEntity.ok(likedBoards);
+    }
+
+    @GetMapping("/mypage/scrap")
+    public ResponseEntity<List<BoardDto>> getMyScrapBoards(@AuthenticationPrincipal UserDetails userDetails){
+        if(userDetails == null){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        SiteUser currentUser = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."));
+
+        List<BoardDto> scrapBoards = boardService.getScrapBoardsByUser(currentUser);
+        return ResponseEntity.ok(scrapBoards);
+    }
     }
 
 
