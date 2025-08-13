@@ -40,6 +40,7 @@ public class QuestionDetailResponse {
                 .imageUrls(q.getImageKeys())
                 .displayDate(DisplayDateUtil.toDisplay(q.getCreateDate()))
                 .answerStatus(status)
+                .answer(q.getAnswer() != null ? AnswerDto.from(q.getAnswer()) : null)
                 .build();
     }
 }
