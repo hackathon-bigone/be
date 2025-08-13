@@ -167,5 +167,15 @@ public class MypageController {
     }
 
     //신고하기 - 작성
-//    public ResponseEntity<ReportDto>
+    @PostMapping(value = "/report", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ReportDto> createReport(
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            @RequestBody ReportDto dto
+    ){
+        if(userDetail == null){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Long userId = userDetail.getId();
+        return ResponseEntity.ok(mypageService.createReport(userId, dto));
+    }
 }

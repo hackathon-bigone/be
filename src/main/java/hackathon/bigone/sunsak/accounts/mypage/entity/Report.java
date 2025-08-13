@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -38,5 +39,15 @@ public class Report extends BaseTime {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String body;
+
+    public void addImageKeys(List<String> keys) {
+        if (keys == null || keys.isEmpty()) return;
+        if (imageKeys == null) imageKeys = new ArrayList<>();
+
+        keys.stream()
+                .filter(Objects::nonNull)
+                .filter(u -> !imageKeys.contains(u))
+                .forEach(imageKeys::add);
+    }
 
 }

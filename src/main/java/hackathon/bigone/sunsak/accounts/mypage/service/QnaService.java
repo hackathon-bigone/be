@@ -49,7 +49,7 @@ public class QnaService {
         // 응답에는 presigned GET URL로 변환
         // - DB에는 key만 있지만, 프론트에서 바로 보기 위해 임시 접근 가능한 URL로 변환
         List<String> viewUrls = keys.stream()
-                .map(k -> s3Uploader.presignedGetUrl(k, Duration.ofMinutes(30)).toString())
+                .map(k -> s3Uploader.presignedGetUrl(k, Duration.ofMinutes(15)).toString())
                 .collect(Collectors.toList());
 
         QuestionDetailResponse res = QuestionDetailResponse.from(question);
