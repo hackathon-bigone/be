@@ -1,7 +1,6 @@
 package hackathon.bigone.sunsak.accounts.mypage.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import hackathon.bigone.sunsak.accounts.mypage.entity.Answer;
 import hackathon.bigone.sunsak.global.util.DisplayDateUtil;
 import lombok.*;
@@ -14,8 +13,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class AnswerDto {
-    @JsonProperty("answer_id")
-    private Long answerId;
     private String title;
     private String body;
 
@@ -29,7 +26,6 @@ public class AnswerDto {
         LocalDateTime date = a.getCreateDate();
 
         return AnswerDto.builder()
-                .answerId(a.getId())
                 .title(a.getTitle())
                 .body(a.getBody())
                 .createDate(date)
