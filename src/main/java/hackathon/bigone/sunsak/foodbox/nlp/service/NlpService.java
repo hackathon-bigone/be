@@ -10,7 +10,9 @@ import lombok.Getter;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -36,13 +38,12 @@ public class NlpService {
                 Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            // 메모리 Set에 단어 로드
+            // 메모리 Set에 단어 로드 ("단어\t태그" → 단어만 추출)
             try (BufferedReader br = Files.newBufferedReader(tempFile)) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     String w = line.strip();
                     if (w.isEmpty()) continue;
-                    // 파일 형식: "단어\t태그" → 단어만 추출
                     int tab = w.indexOf('\t');
                     if (tab > 0) w = w.substring(0, tab).strip();
                     userDictWords.add(w);
@@ -101,7 +102,7 @@ public class NlpService {
 
                 String noun = t.getMorph();
                 if (noun == null || noun.isBlank()) continue;
-                if (userDictWords.contains(noun)) continue; // 정확히 user_dict와 일치하면 이미 위에서 처리
+                if (userDictWords.contains(noun)) continue; // user_dict와 일치하면 이미 처리됨
 
                 int b = t.getBeginIndex(), e = t.getEndIndex();
                 for (int[] c : covered) {
@@ -112,6 +113,28 @@ public class NlpService {
             }
         }
         return new ClassifiedTokens(userDictGroup, freeNounGroup);
+    }
+
+    /**
+     * (옵션) 명사만 뽑아 수량과 함께 반환 — 디버깅/로그 확인용
+     */
+    public List<OcrExtractedItem> extractNouns(List<OcrExtractedItem> rawItems) {
+        List<OcrExtractedItem> result = new ArrayList<>();
+        if (rawItems == null || rawItems.isEmpty()) return result;
+
+        for (OcrExtractedItem item : rawItems) {
+            if (item == null || item.getName() == null || item.getName().isBlank()) continue;
+
+            KomoranResult res = komoran.analyze(item.getName());
+            List<String> nouns = res.getNouns();
+            int qty = Math.max(1, item.getQuantity());
+
+            for (String noun : nouns) {
+                if (noun == null || noun.isBlank()) continue;
+                result.add(new OcrExtractedItem(noun, qty));
+            }
+        }
+        return result;
     }
 
     @Getter
