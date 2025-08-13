@@ -153,21 +153,17 @@ public class MypageController {
         return ResponseEntity.ok(qnaService.getMyQuestion(userDetail.getId(), questionId));
     }
 
-    //qna 작성, form-data 전체 다!
-    @PostMapping(value = "/qna", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //qna 작성, json으로 프론트에서 온 key(url)만 String으로 저장하면 됨
+    @PostMapping(value = "/qna", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<QuestionDetailResponse> createQuestion(
             @AuthenticationPrincipal CustomUserDetail userDetail,
-            @Valid @ModelAttribute QuestionRequest req,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images
-    )throws IOException {
+            @Valid @RequestBody QuestionRequest req
+    ){
         if(userDetail == null){
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        if (images != null && images.size() > 4){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
 
         Long userId = userDetail.getId();
-        return ResponseEntity.ok(qnaService.createQuestion(userId, req, images));
+        return ResponseEntity.ok(qnaService.createQuestion(userId, req));
     }
 }
