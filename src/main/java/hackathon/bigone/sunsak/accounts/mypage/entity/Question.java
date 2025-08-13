@@ -30,6 +30,7 @@ public class Question extends BaseTime {
     //별도의 gna_images 테이블로 자동생성
     @CollectionTable(name = "qna_images", joinColumns = @JoinColumn(name = "question_id"))
     @Column(name = "image_key")
+    @Builder.Default
     private List<String> imageKeys = new ArrayList<>();
 
     @OneToOne(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -49,6 +50,7 @@ public class Question extends BaseTime {
 
     public void addImageKeys(List<String> keys) {
         if (keys == null || keys.isEmpty()) return;
+        if (imageKeys == null) imageKeys = new ArrayList<>();
 
         keys.stream()
                 .filter(Objects::nonNull)
