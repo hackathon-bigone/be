@@ -48,7 +48,7 @@ public class CommentService {
 
         List<CommentResponseDto> parentComments = allComments.stream()
                 .filter(comment -> comment.getParent() == null)
-                .map(comment -> new CommentResponseDto(comment))
+                .map(CommentResponseDto::new)
                 .collect(Collectors.toList());
 
         return parentComments;
