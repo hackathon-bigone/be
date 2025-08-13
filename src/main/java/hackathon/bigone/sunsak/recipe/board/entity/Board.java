@@ -1,18 +1,23 @@
 package hackathon.bigone.sunsak.recipe.board.entity;
 
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
-import jakarta.persistence.*;
+import hackathon.bigone.sunsak.recipe.board.enums.RecipeCategory;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import hackathon.bigone.sunsak.recipe.board.enums.RecipeCategory;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.validation.constraints.Size;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "RecipeBoards")
+@EntityListeners(AuditingEntityListener.class)
 public class Board {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -66,4 +71,7 @@ public class Board {
     // 스크랩 리스트
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecipeScrap> scraps;
+
+    @CreatedDate
+    private LocalDateTime createDate;
 }
