@@ -45,7 +45,7 @@ public class BoardController {
     //CustomUserDetail 안에 SiteUser 엔티티가 직접 있어서 DB 재조회 불필요
     @PostMapping
     public ResponseEntity<String> createBoard(
-            @ModelAttribute BoardDto boardDto,
+            @RequestBody BoardDto boardDto,
             @AuthenticationPrincipal CustomUserDetail userDetail
     ){
         if(userDetail == null){
