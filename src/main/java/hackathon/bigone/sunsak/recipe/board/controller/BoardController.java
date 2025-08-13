@@ -48,31 +48,32 @@ public class BoardController {
      * @param prefix S3 버킷 내의 파일 경로 접두사 (예: "recipe")
      */
     @PostMapping("/uploads/{prefix}")
-    public ResponseEntity<List<PresignUploadResponse>> getPresignedUrls(
-            @PathVariable String prefix, // URL에서 prefix를 받음
-            @RequestBody List<PresignUploadRequest> reqList,
-            @AuthenticationPrincipal CustomUserDetail userDetail
+    public ResponseEntity<Object> getPresignedUrls( // 반환 타입을 ResponseEntity<Object>로 변경
+                                                    @PathVariable String prefix,
+                                                    @RequestBody List<PresignUploadRequest> reqList,
+                                                    @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
         if (userDetail == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("로그인이 필요합니다.", HttpStatus.UNAUTHORIZED);
         }
         Long userId = userDetail.getUser().getId();
-        Duration ttl = Duration.ofMinutes(10); // URL 유효 시간: 10분
+        Duration ttl = Duration.ofMinutes(10);
 
         try {
             List<PresignUploadResponse> response = presignUploadService.issuePresigned(prefix, userId, reqList, ttl);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
+            log.error("Pre-signed URL 발급 중 오류 발생", e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
     /**
-     * 게시글 생성 API (이미지 키를 DTO에 담아 JSON으로 받음)
+     * 게시글 생성 API
      */
     @PostMapping
     public ResponseEntity<String> createBoard(
-            @RequestBody BoardDto boardDto, // @RequestBody로 변경
+            @RequestBody BoardDto boardDto,
             @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
         if (userDetail == null) {
@@ -90,12 +91,12 @@ public class BoardController {
     }
 
     /**
-     * 게시글 수정 API (이미지 키를 DTO에 담아 JSON으로 받음)
+     * 게시글 수정 API
      */
     @PatchMapping("/{postId}")
     public ResponseEntity<Board> updateBoard(
             @PathVariable Long postId,
-            @RequestBody BoardDto boardDto, // @RequestBody 유지
+            @RequestBody BoardDto boardDto,
             @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
         if (userDetail == null) {
