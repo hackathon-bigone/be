@@ -19,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,23 +29,22 @@ import java.util.stream.Collectors;
 public class BoardService {
 
     private final BoardRepository boardRepository;
-    private final LikeRepository LikeRepository;
+    private final LikeRepository likeRepository;
     private final ScrapRepository scrapRepository;
     private final S3Uploader s3Uploader;
 
     @Transactional
-    public Board createBoard(BoardDto boardDto, SiteUser author) throws IOException { // IOException 예외를 던짐
+    public Board create(BoardDto boardDto, SiteUser author) throws IOException { // MultipartFile 파라미터 제거
         Board newBoard = new Board();
         newBoard.setTitle(boardDto.getTitle());
         newBoard.setCookingTime(boardDto.getCookingTime());
         newBoard.setRecipeDescription(boardDto.getRecipeDescription());
         newBoard.setAuthor(author);
 
-        if(boardDto.getMainImageFile() != null && !boardDto.getMainImageFile().isEmpty()) {
-            String imageUrl = s3Uploader.uploadOne("recipe", boardDto.getMainImageFile());
-            newBoard.setMainImageUrl(imageUrl);
+        // DTO에 있는 S3 키를 바로 저장 (업로드 로직 제거)
+        if (boardDto.getMainImageUrl() != null) {
+            newBoard.setMainImageUrl(boardDto.getMainImageUrl());
         }
-
 
         // 재료
         if (boardDto.getIngredients() != null) {
@@ -61,13 +59,18 @@ public class BoardService {
 
         // 단계
         if (boardDto.getSteps() != null) {
-            boardDto.getSteps().forEach(stepDto -> {
+            for (StepDto stepDto : boardDto.getSteps()) {
                 Step newStep = new Step();
                 newStep.setStepNumber(stepDto.getStepNumber());
                 newStep.setStepDescription(stepDto.getStepDescription());
                 newStep.setBoard(newBoard);
+
+                // DTO에 있는 S3 키를 바로 저장 (업로드 로직 제거)
+                if (stepDto.getStepImageUrl() != null) {
+                    newStep.setStepImageUrl(stepDto.getStepImageUrl());
+                }
                 newBoard.getSteps().add(newStep);
-            });
+            }
         }
 
         // 링크
@@ -80,41 +83,49 @@ public class BoardService {
             });
         }
 
-        //카테고리
+        // 카테고리
         if (boardDto.getCategories() != null) {
             newBoard.getCategories().addAll(boardDto.getCategories());
         }
 
         return boardRepository.save(newBoard);
-
     }
-        @Transactional
-        public Board updateBoard(Long postId, BoardDto boardDto, SiteUser currentUser) {
-            Board existingBoard = boardRepository.findById(postId)
-                    .orElseThrow(() -> new EntityNotFoundException("Board not found with id: " + postId));
 
-            if (!existingBoard.getAuthor().equals(currentUser)) {
-                throw new IllegalStateException("이 게시글을 수정할 권한이 없습니다.");
-            }
+    @Transactional
+    public Board updateBoard(Long postId, BoardDto boardDto, SiteUser currentUser) throws IOException { // MultipartFile 파라미터 제거
+        Board existingBoard = boardRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("Board not found with id: " + postId));
+
+        if (!existingBoard.getAuthor().equals(currentUser)) {
+            throw new IllegalStateException("이 게시글을 수정할 권한이 없습니다.");
+        }
 
         existingBoard.setTitle(boardDto.getTitle());
         existingBoard.setRecipeDescription(boardDto.getRecipeDescription());
         existingBoard.setCookingTime(boardDto.getCookingTime());
-        existingBoard.setMainImageUrl(boardDto.getMainImageUrl());
 
-        // 단계(Steps) 업데이트
+        // mainImage 업데이트
+        if(boardDto.getMainImageUrl() != null) { // DTO에 있는 S3 키를 바로 저장 (업로드 로직 제거)
+            existingBoard.setMainImageUrl(boardDto.getMainImageUrl());
+        }
+
+        // 단계 업데이트
         existingBoard.getSteps().clear();
         if (boardDto.getSteps() != null) {
-            boardDto.getSteps().forEach(stepDto -> {
+            for (StepDto stepDto : boardDto.getSteps()) {
                 Step newStep = new Step();
                 newStep.setStepNumber(stepDto.getStepNumber());
                 newStep.setStepDescription(stepDto.getStepDescription());
                 newStep.setBoard(existingBoard);
+
+                if(stepDto.getStepImageUrl() != null) { // DTO에 있는 S3 키를 바로 저장 (업로드 로직 제거)
+                    newStep.setStepImageUrl(stepDto.getStepImageUrl());
+                }
                 existingBoard.getSteps().add(newStep);
-            });
+            }
         }
 
-        // 재료(Ingredients) 업데이트
+        // 재료, 링크, 카테고리 업데이트 (기존 로직 유지)
         existingBoard.getIngredients().clear();
         if (boardDto.getIngredients() != null) {
             boardDto.getIngredients().forEach(ingredientDto -> {
@@ -126,7 +137,6 @@ public class BoardService {
             });
         }
 
-        // 링크(Links) 업데이트
         existingBoard.getRecipeLink().clear();
         if (boardDto.getRecipeLinks() != null) {
             boardDto.getRecipeLinks().forEach(recipeLinkDto -> {
@@ -144,7 +154,6 @@ public class BoardService {
 
         return existingBoard;
     }
-
 
     // 모든 게시글(레시피) 조회
     public List<BoardDto> findAllBoards() {
@@ -204,6 +213,13 @@ public class BoardService {
         StepDto stepDto = new StepDto();
         stepDto.setStepNumber(step.getStepNumber());
         stepDto.setStepDescription(step.getStepDescription());
+
+        String s3Key = step.getStepImageUrl();
+        if (s3Key != null && !s3Key.isEmpty()) {
+            String imageUrl = s3Uploader.presignedGetUrl(s3Key, Duration.ofMinutes(10)).toString();
+            stepDto.setStepImageUrl(imageUrl);
+        }
+
         return stepDto;
     }
 
@@ -213,7 +229,6 @@ public class BoardService {
         return recipeLinkDto;
     }
 
-    private final LikeRepository likeRepository;
     public void toggleLike(Long postId, SiteUser user){
         Board board = boardRepository.findById(postId).orElseThrow();
         Optional<RecipeLike> existingLike = likeRepository.findByBoardAndUser(board, user);

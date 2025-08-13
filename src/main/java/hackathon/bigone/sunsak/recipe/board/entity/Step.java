@@ -12,15 +12,19 @@ public class Step {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long stepId;
 
-    @Column(nullable= false)
+    // 단계 순서
+    @Column(nullable = false)
     private int stepNumber;
 
-    @Column(nullable =false)
+    // 프론트에서 업로드 후 전달되는 이미지 URL
+    @Column(nullable = false, length = 500)
     private String stepImageUrl;
 
+    // 단계 설명
     @Column(columnDefinition = "TEXT", nullable = false)
     private String stepDescription;
 
+    // 해당 단계가 속한 Board
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_post_id")
     private Board board;
