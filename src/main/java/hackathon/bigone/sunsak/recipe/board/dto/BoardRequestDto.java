@@ -6,18 +6,17 @@ import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+
 @Getter
 @Setter
-public class BoardDto {
-    private Long postId;
+public class BoardRequestDto {
     private String title;
     private String cookingTime;
-    private String mainImageUrl;
     private MultipartFile mainImageFile;
-    private List<StepDto> steps;
-    private List<RecipeLinkDto> recipeLinks;
-    private List<IngredientDto> ingredients;
+    private String mainImageUrl;
+    private List<StepRequestDto> steps;
+    private List<RecipeLinkRequestDto> recipeLinks;
+    private List<IngredientRequestDto> ingredients;
     private List<RecipeCategory> categories;
     private String recipeDescription;
-
 }

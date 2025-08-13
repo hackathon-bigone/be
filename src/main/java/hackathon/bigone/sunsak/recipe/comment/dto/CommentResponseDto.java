@@ -1,5 +1,6 @@
 package hackathon.bigone.sunsak.recipe.comment.dto;
 
+import hackathon.bigone.sunsak.global.util.DisplayDateUtil;
 import hackathon.bigone.sunsak.recipe.comment.entity.Comment;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +17,7 @@ public class CommentResponseDto {
     private Long boardPostId;
     private Long authorId;
     private String content;
-    private LocalDateTime createdAt;
+    private String createdAt;
     private List<CommentResponseDto> children;
 
     public CommentResponseDto() {
@@ -28,7 +29,7 @@ public class CommentResponseDto {
         this.boardPostId = comment.getBoard().getPostId();
         this.authorId = comment.getAuthor().getId();
         this.content = comment.getContent();
-        this.createdAt = comment.getCreateDate();
+        this.createdAt = DisplayDateUtil.toDisplay(comment.getCreateDate());
         // 자식 댓글이 있다면, 재귀적으로 DTO로 변환하여 children 필드에 저장
         this.children = comment.getChildren().stream()
                 .map(CommentResponseDto::new)

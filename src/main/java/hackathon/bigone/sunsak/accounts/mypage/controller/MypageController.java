@@ -12,7 +12,7 @@ import hackathon.bigone.sunsak.accounts.mypage.service.QnaService;
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
 import hackathon.bigone.sunsak.global.validate.accounts.SignupValidator;
-import hackathon.bigone.sunsak.recipe.board.dto.BoardDto;
+import hackathon.bigone.sunsak.recipe.board.dto.BoardResponseDto;
 import hackathon.bigone.sunsak.recipe.board.service.BoardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -117,13 +117,13 @@ public class MypageController {
 
     //스크랩
     @GetMapping("/scrap")
-    public ResponseEntity<List<BoardDto>> getMyScrapBoards(@AuthenticationPrincipal CustomUserDetail userDetail){
+    public ResponseEntity<List<BoardResponseDto>> getMyScrapBoards(@AuthenticationPrincipal CustomUserDetail userDetail){
         if(userDetail == null){
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         SiteUser user = userDetail.getUser();
 
-        List<BoardDto> scrapBoards = boardService.getScrapBoardsByUser(user);
+        List<BoardResponseDto> scrapBoards = boardService.getScrapBoardsByUser(user);
         return ResponseEntity.ok(scrapBoards);
     }
 
