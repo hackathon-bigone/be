@@ -13,11 +13,8 @@ import hackathon.bigone.sunsak.global.aws.s3.service.S3Uploader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -32,52 +29,34 @@ public class QnaService {
 
     //문의 작성
     @Transactional
-    public QuestionDetailResponse createQuestion(Long userId, QuestionRequest req, List<MultipartFile> images)
-            throws IOException {
+    public QuestionDetailResponse createQuestion(Long userId, QuestionRequest req) {
+        //작성자 조회
         SiteUser author = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        List<String> keys = new ArrayList<>();
-        try {
-            if (images != null) {
-                for (MultipartFile f : images) {
-                    if (f == null || f.isEmpty()) continue;
-                    if (f.getContentType() == null || !f.getContentType().startsWith("image/")) {
-                        throw new IllegalArgumentException("이미지 파일만 업로드 가능합니다.");
-                    }
+        //S3 key 리스트 (이미 프론트가 Presigned PUT으로 업로드 완료한 key)
+        List<String> keys = (req.getImageKeys() == null) ? List.of() : req.getImageKeys();
 
-                    String key = s3Uploader.uploadOneUnder("qna/" + userId, f);
-                    keys.add(key);
-                }
-            }
+        Question question = Question.builder()
+                .title(req.getTitle())
+                .body(req.getBody())
+                .imageUrls(keys)
+                .author(author)
+                .build();
 
-            Question question = Question
-                    .builder()
-                    .title(req.getTitle())
-                    .body(req.getBody())
-                    .imageUrls(keys)
-                    .author(author)
-                    .build();
+        questionRepository.save(question);
 
-            questionRepository.save(question);
+        // 응답에는 presigned GET URL로 변환
+        // - DB에는 key만 있지만, 프론트에서 바로 보기 위해 임시 접근 가능한 URL로 변환
+        List<String> viewUrls = keys.stream()
+                .map(k -> s3Uploader.presignedGetUrl(k, Duration.ofMinutes(30)).toString())
+                .collect(Collectors.toList());
 
-            // 응답에는 presigned GET URL로 변환
-            List<String> viewUrls = keys.stream()
-                    .map(k -> s3Uploader.presignedGetUrl(k, Duration.ofMinutes(10)).toString())
-                    .collect(Collectors.toList());
+        QuestionDetailResponse res = QuestionDetailResponse.from(question);
+        res.setImageUrls(viewUrls);
 
-            QuestionDetailResponse res = QuestionDetailResponse.from(question);
-            res.setImageUrls(viewUrls);
+        return res;
 
-            return res;
-
-        } catch (Exception e) {
-            // DB 저장 실패 등 발생 시, 이미 업로드된 S3 객체 정리
-            for (String key : keys) {
-                try { s3Uploader.delete(key); } catch (Exception ignore) {}
-            }
-            throw e;
-        }
     }
 
     //문의 전체 조회
