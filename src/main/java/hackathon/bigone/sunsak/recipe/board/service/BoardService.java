@@ -7,12 +7,15 @@ import hackathon.bigone.sunsak.recipe.board.entity.*;
 import hackathon.bigone.sunsak.recipe.board.repository.BoardRepository;
 import hackathon.bigone.sunsak.recipe.board.repository.LikeRepository;
 import hackathon.bigone.sunsak.recipe.board.repository.ScrapRepository;
+import hackathon.bigone.sunsak.recipe.comment.dto.CommentResponseDto;
+import hackathon.bigone.sunsak.recipe.comment.service.CommentService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,6 +28,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final LikeRepository likeRepository;
     private final ScrapRepository scrapRepository;
+    private final CommentService commentService;
 
 
     @Transactional
@@ -69,8 +73,8 @@ public class BoardService {
         if (boardDto.getCategories() != null) {
             newBoard.getCategories().addAll(boardDto.getCategories());
         }
-
-        return new BoardResponseDto(boardRepository.save(newBoard));
+        Board savedBoard = boardRepository.save(newBoard);
+        return new BoardResponseDto(savedBoard, new ArrayList<>());
     }
 
     @Transactional
@@ -124,8 +128,11 @@ public class BoardService {
         if (boardDto.getCategories() != null) {
             existingBoard.getCategories().addAll(boardDto.getCategories());
         }
+        Board savedBoard = boardRepository.save(existingBoard);
 
-        return new BoardResponseDto(boardRepository.save(existingBoard));
+        List<CommentResponseDto> comments = commentService.getComments(postId);
+
+        return new BoardResponseDto(savedBoard, comments);
     }
 
     @Transactional
@@ -142,7 +149,7 @@ public class BoardService {
     @Transactional(readOnly = true)
     public List<BoardResponseDto> findAllBoards() {
         return boardRepository.findAll().stream()
-                .map(BoardResponseDto::new)
+                .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
                 .collect(Collectors.toList());
     }
 
@@ -150,7 +157,9 @@ public class BoardService {
     public BoardResponseDto findBoardById(Long postId) {
         Board board = boardRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
-        return new BoardResponseDto(board);
+        List<CommentResponseDto> parentComments = commentService.getComments(postId);
+        // BoardResponseDto 생성자에 필요한 데이터와 함께 댓글 목록을 전달
+        return new BoardResponseDto(board, parentComments);
     }
 
     @Transactional
@@ -187,7 +196,7 @@ public class BoardService {
     public List<BoardResponseDto> getLikedBoardsByUser(SiteUser user) {
         return likeRepository.findByUser(user).stream()
                 .map(RecipeLike::getBoard)
-                .map(BoardResponseDto::new)
+                .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
                 .collect(Collectors.toList());
     }
 
@@ -195,7 +204,7 @@ public class BoardService {
     public List<BoardResponseDto> getScrapBoardsByUser(SiteUser user) {
         return scrapRepository.findByUser(user).stream()
                 .map(RecipeScrap::getBoard)
-                .map(BoardResponseDto::new)
+                .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
                 .collect(Collectors.toList());
     }
 }
