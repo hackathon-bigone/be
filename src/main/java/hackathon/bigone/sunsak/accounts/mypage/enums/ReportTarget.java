@@ -8,4 +8,8 @@ public enum ReportTarget {
     ReportTarget(String displayName) {
         this.displayName = displayName;
     }
+
+    public String getDisplayName() {
+        return displayName;
+    }
 }

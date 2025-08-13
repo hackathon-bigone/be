@@ -93,8 +93,8 @@ public class MypageService {
 
         Report toSave = Report.builder()
                 .title(dto.getTitle())
-                .target(dto.getTarget())
-                .type(dto.getType())
+                .target(dto.getTargetEnum())
+                .type(dto.getTypeEnum())
                 .postLink(dto.getPostLink())
                 .body(dto.getBody())
                 .imageKeys(keys)
