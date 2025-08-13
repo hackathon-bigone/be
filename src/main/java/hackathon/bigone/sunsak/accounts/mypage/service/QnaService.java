@@ -40,9 +40,11 @@ public class QnaService {
         Question question = Question.builder()
                 .title(req.getTitle())
                 .body(req.getBody())
-                .imageUrls(keys)
                 .author(author)
                 .build();
+
+        //이미지 중복 없이
+        question.addImageUrls(keys);
 
         questionRepository.save(question);
 
@@ -80,6 +82,13 @@ public class QnaService {
         Question q = questionRepository.findByIdAndAuthorId(questionId, userId)
                 .orElseThrow(() -> new NoSuchElementException("해당 문의를 찾을 수 없습니다."));
 
-        return QuestionDetailResponse.from(q);
+        List<String> viewUrls = q.getImageUrls().stream()
+                .map(k -> s3Uploader.presignedGetUrl(k, Duration.ofMinutes(30)).toString())
+                .toList();
+
+        QuestionDetailResponse res = QuestionDetailResponse.from(q);
+        res.setImageUrls(viewUrls);
+
+        return res;
     }
 }
