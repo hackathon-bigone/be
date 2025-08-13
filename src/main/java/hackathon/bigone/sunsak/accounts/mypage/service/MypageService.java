@@ -84,9 +84,14 @@ public class MypageService {
         SiteUser user = userRepository.findById(userId)
                 .orElseThrow(()-> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+//        if (dto.getTarget() == ReportTarget.POST &&
+//                (dto.getPostLink() == null || dto.getPostLink().isBlank())) {
+//            throw new IllegalArgumentException("게시물 신고일 경우 링크는 필수입니다.");
+//        }
+
         List<String> keys = (dto.getImageKeys() == null) ? List.of() : dto.getImageKeys();
 
-        Report report = Report.builder()
+        Report toSave = Report.builder()
                 .title(dto.getTitle())
                 .target(dto.getTarget())
                 .type(dto.getType())
@@ -95,15 +100,22 @@ public class MypageService {
                 .imageKeys(keys)
                 .build();
 
-        report.addImageKeys(keys);
+        Report saved = reportRepository.save(toSave);
 
         List<String> viewUrls = keys.stream()
                 .map(k -> s3Uploader.presignedGetUrl(k, Duration.ofMinutes(15)).toString())
                 .collect(Collectors.toList());
 
-        dto.setImageKeys(viewUrls);
-
-        return dto;
+        return ReportDto.builder()
+                .reportId(saved.getId())
+                .title(saved.getTitle())
+                .target(saved.getTarget())
+                .type(saved.getType())
+                .postLink(saved.getPostLink())
+                .body(saved.getBody())
+                .imageKeys(viewUrls)  // presigned URL을 응답에 넣음
+                .createDate(saved.getCreateDate())
+                .build();
     }
 
 
