@@ -36,7 +36,7 @@ public class PresignUploadController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        Duration ttl = Duration.ofMinutes(30); // 만료 시간
+        Duration ttl = Duration.ofMinutes(15); // 만료 시간
         List<PresignUploadResponse> res =
                 presignUploadService.issuePresigned(prefix, userDetail.getId(), reqList, ttl);
 
