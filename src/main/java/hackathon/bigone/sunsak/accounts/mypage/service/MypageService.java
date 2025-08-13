@@ -3,6 +3,7 @@ package hackathon.bigone.sunsak.accounts.mypage.service;
 import hackathon.bigone.sunsak.accounts.mypage.dto.NoticeDto;
 import hackathon.bigone.sunsak.accounts.mypage.dto.PasswordChangeDto;
 import hackathon.bigone.sunsak.accounts.mypage.repository.NoticeRepository;
+import hackathon.bigone.sunsak.accounts.mypage.repository.ReportRepository;
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.accounts.user.repository.UserRepository;
 import hackathon.bigone.sunsak.global.validate.accounts.SignupValidator;
@@ -21,7 +22,9 @@ public class MypageService {
     private final PasswordEncoder passwordEncoder;
     private final SignupValidator signupValidator;
     private final NoticeRepository noticeRepository;
+    private final ReportRepository reportRepository;
 
+    //닉네임 수정
     @Transactional
     public void updateNickname(Long userId, String newNickname) {
         SiteUser user = userRepository.findById(userId)
@@ -34,6 +37,7 @@ public class MypageService {
         user.setNickname(newNickname);
     }
 
+    //비밀번호 변경
     @Transactional
     public void updatePassword(Long userId, PasswordChangeDto dto){
         SiteUser user = userRepository.findById(userId)
@@ -52,6 +56,7 @@ public class MypageService {
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
     }
 
+    //모든 공지사항 확인
     @Transactional
     public List<NoticeDto> getAllNotices() {
         return noticeRepository.findAllByOrderByIsFixedDescCreateDateDesc()
@@ -60,9 +65,13 @@ public class MypageService {
                 .toList();
     }
 
+    //공지사항 상세 확인
     @Transactional
     public  Optional<NoticeDto> getNoticeById(Long noticeId) {
         return noticeRepository.findById(noticeId)
                 .map(NoticeDto::from);
     }
+
+    //신고하기 - 작성
+
 }

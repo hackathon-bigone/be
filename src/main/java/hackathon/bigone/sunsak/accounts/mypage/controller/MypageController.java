@@ -2,6 +2,7 @@ package hackathon.bigone.sunsak.accounts.mypage.controller;
 
 import hackathon.bigone.sunsak.accounts.mypage.dto.NoticeDto;
 import hackathon.bigone.sunsak.accounts.mypage.dto.PasswordChangeDto;
+import hackathon.bigone.sunsak.accounts.mypage.dto.ReportDto;
 import hackathon.bigone.sunsak.accounts.mypage.dto.question.QuestionDetailResponse;
 import hackathon.bigone.sunsak.accounts.mypage.dto.question.QuestionRequest;
 import hackathon.bigone.sunsak.accounts.mypage.dto.question.QuestionResponse;
@@ -21,9 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -122,9 +121,9 @@ public class MypageController {
         if(userDetail == null){
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        SiteUser currentUser = userDetail.getUser();
+        SiteUser user = userDetail.getUser();
 
-        List<BoardDto> scrapBoards = boardService.getScrapBoardsByUser(currentUser);
+        List<BoardDto> scrapBoards = boardService.getScrapBoardsByUser(user);
         return ResponseEntity.ok(scrapBoards);
     }
 
@@ -166,4 +165,7 @@ public class MypageController {
         Long userId = userDetail.getId();
         return ResponseEntity.ok(qnaService.createQuestion(userId, req));
     }
+
+    //신고하기 - 작성
+//    public ResponseEntity<ReportDto>
 }
