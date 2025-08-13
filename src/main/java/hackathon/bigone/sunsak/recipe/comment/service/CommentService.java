@@ -26,35 +26,31 @@ public class CommentService {
         Board board = boardRepository.findById(boardPostId)
                 .orElseThrow(() -> new EntityNotFoundException("Board not found with id: " + boardPostId));
 
+        Comment parentComment = null;
+        if (requestDto.getParentId() != null) {
+            parentComment = commentRepository.findById(requestDto.getParentId())
+                    .orElseThrow(() -> new EntityNotFoundException("Parent comment not found with id: " + requestDto.getParentId()));
+        }
+
         Comment comment = new Comment();
         comment.setContent(requestDto.getContent());
         comment.setBoard(board);
         comment.setAuthor(author);
+        comment.setParent(parentComment);
 
         Comment savedComment = commentRepository.save(comment);
-
-        return convertToResponseDto(savedComment);
+        return new CommentResponseDto(savedComment);
     }
 
     @Transactional(readOnly = true)
     public List<CommentResponseDto> getComments(Long boardPostId) {
-        Board board = boardRepository.findById(boardPostId)
-                .orElseThrow(() -> new EntityNotFoundException("Board not found with id: " + boardPostId));
+        List<Comment> allComments = commentRepository.findByBoard_PostId(boardPostId);
 
-        List<Comment> comments = commentRepository.findByBoard(board);
-
-        return comments.stream()
-                .map(this::convertToResponseDto)
+        List<CommentResponseDto> parentComments = allComments.stream()
+                .filter(comment -> comment.getParent() == null)
+                .map(comment -> new CommentResponseDto(comment))
                 .collect(Collectors.toList());
-    }
 
-    private CommentResponseDto convertToResponseDto(Comment comment) {
-        CommentResponseDto dto = new CommentResponseDto();
-        dto.setCommentId(comment.getId());
-        dto.setBoardPostId(comment.getBoard().getPostId());
-        dto.setAuthorId(comment.getAuthor().getId());
-        dto.setContent(comment.getContent());
-        dto.setCreatedAt(comment.getCreateDate());
-        return dto;
+        return parentComments;
     }
 }

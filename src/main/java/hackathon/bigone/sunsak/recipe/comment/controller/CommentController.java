@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/boards/{boardPostId}/comments")
+@RequestMapping("/recipe/{boardPostId}/comments")
 public class CommentController {
 
     private final CommentService commentService;
