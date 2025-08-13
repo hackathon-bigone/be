@@ -33,8 +33,7 @@ public class Comment extends BaseTime {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Comment parent;
-
-    // 자식 댓글 목록
-    @OneToMany(mappedBy = "parent", orphanRemoval = true)
+ // 자식 댓글 목록
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> children = new ArrayList<>();
 }

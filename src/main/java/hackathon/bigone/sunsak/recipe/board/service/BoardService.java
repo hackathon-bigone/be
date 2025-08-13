@@ -1,7 +1,6 @@
 package hackathon.bigone.sunsak.recipe.board.service;
 
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
-import hackathon.bigone.sunsak.global.aws.s3.service.S3Uploader;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardRequestDto;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardResponseDto;
 import hackathon.bigone.sunsak.recipe.board.entity.*;
@@ -53,7 +52,6 @@ public class BoardService {
                 newStep.setStepNumber(stepDto.getStepNumber());
                 newStep.setStepDescription(stepDto.getStepDescription());
                 newStep.setBoard(newBoard);
-                // 👈 stepDto가 StepRequestDto 타입이므로 stepImageUrl 필드를 추가해야 함
                 newStep.setStepImageUrl(stepDto.getStepImageUrl());
                 newBoard.getSteps().add(newStep);
             });
