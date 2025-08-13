@@ -37,6 +37,6 @@ public class ReportDto {
     @NotBlank
     private String body;
 
-    private List<String> imageUrls;
+    private List<String> imageKeys;
     private LocalDateTime createDate;
 }

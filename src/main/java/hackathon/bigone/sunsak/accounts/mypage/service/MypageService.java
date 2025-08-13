@@ -2,18 +2,23 @@ package hackathon.bigone.sunsak.accounts.mypage.service;
 
 import hackathon.bigone.sunsak.accounts.mypage.dto.NoticeDto;
 import hackathon.bigone.sunsak.accounts.mypage.dto.PasswordChangeDto;
+import hackathon.bigone.sunsak.accounts.mypage.dto.ReportDto;
+import hackathon.bigone.sunsak.accounts.mypage.entity.Report;
 import hackathon.bigone.sunsak.accounts.mypage.repository.NoticeRepository;
 import hackathon.bigone.sunsak.accounts.mypage.repository.ReportRepository;
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.accounts.user.repository.UserRepository;
+import hackathon.bigone.sunsak.global.aws.s3.service.S3Uploader;
 import hackathon.bigone.sunsak.global.validate.accounts.SignupValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +28,7 @@ public class MypageService {
     private final SignupValidator signupValidator;
     private final NoticeRepository noticeRepository;
     private final ReportRepository reportRepository;
+    private final S3Uploader s3Uploader;
 
     //닉네임 수정
     @Transactional
@@ -73,5 +79,32 @@ public class MypageService {
     }
 
     //신고하기 - 작성
+    @Transactional
+    public ReportDto createReport(Long userId, ReportDto dto) {
+        SiteUser user = userRepository.findById(userId)
+                .orElseThrow(()-> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        List<String> keys = (dto.getImageKeys() == null) ? List.of() : dto.getImageKeys();
+
+        Report report = Report.builder()
+                .title(dto.getTitle())
+                .target(dto.getTarget())
+                .type(dto.getType())
+                .postLink(dto.getPostLink())
+                .body(dto.getBody())
+                .imageKeys(keys)
+                .build();
+
+        report.addImageKeys(keys);
+
+        List<String> viewUrls = keys.stream()
+                .map(k -> s3Uploader.presignedGetUrl(k, Duration.ofMinutes(15)).toString())
+                .collect(Collectors.toList());
+
+        dto.setImageKeys(viewUrls);
+
+        return dto;
+    }
+
 
 }
