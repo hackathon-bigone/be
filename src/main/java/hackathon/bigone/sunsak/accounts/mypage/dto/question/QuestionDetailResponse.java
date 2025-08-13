@@ -37,7 +37,7 @@ public class QuestionDetailResponse {
                 .qId(q.getId())
                 .title(q.getTitle())
                 .body(q.getBody())
-                .imageUrls(q.getImageUrls())
+                .imageUrls(q.getImageKeys())
                 .displayDate(DisplayDateUtil.toDisplay(q.getCreateDate()))
                 .answerStatus(status)
                 .build();
