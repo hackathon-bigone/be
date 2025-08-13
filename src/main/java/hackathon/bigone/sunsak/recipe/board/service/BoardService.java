@@ -149,7 +149,10 @@ public class BoardService {
     @Transactional(readOnly = true)
     public List<BoardResponseDto> findAllBoards() {
         return boardRepository.findAll().stream()
-                .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
+                .map(board -> {
+                    List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
+                    return new BoardResponseDto(board, comments);
+                })
                 .collect(Collectors.toList());
     }
 
