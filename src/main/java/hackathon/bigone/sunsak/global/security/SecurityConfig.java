@@ -15,6 +15,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @RequiredArgsConstructor
@@ -35,6 +38,7 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(
                         org.springframework.security.config.http.SessionCreationPolicy.STATELESS)) // 세션 사용 안함
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) //CORS
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers("/user/login", "/user/signup").permitAll() // 1) 로그인, 회원가입은 제외
                                 // .requestMatchers(HttpMethod.POST, "/**").authenticated() // POST는 인증 필요
@@ -51,6 +55,19 @@ public class SecurityConfig {
                         UsernamePasswordAuthenticationFilter.class)
                 //.exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOriginPattern("*"); // 모든 Origin 허용 (배포 시 도메인 제한 가능)
+        config.addAllowedMethod("*"); // GET, POST, PUT, DELETE, OPTIONS
+        config.addAllowedHeader("*"); // 모든 헤더 허용
+        config.setAllowCredentials(true); // 인증정보 허용 (JWT 같은거 보낼 때 필요)
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean
