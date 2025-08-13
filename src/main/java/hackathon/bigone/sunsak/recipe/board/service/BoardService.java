@@ -161,8 +161,13 @@ public class BoardService {
         Board board = boardRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
         List<CommentResponseDto> parentComments = commentService.getComments(postId);
-        // BoardResponseDto 생성자에 필요한 데이터와 함께 댓글 목록을 전달
-        return new BoardResponseDto(board, parentComments);
+        BoardResponseDto responseDto = new BoardResponseDto(board, parentComments);
+
+        // 좋아요 및 댓글 개수 설정
+        responseDto.setLikeCount(board.getLikes().size());
+        responseDto.setCommentCount(board.getComments().size());
+
+        return responseDto;
     }
 
     @Transactional

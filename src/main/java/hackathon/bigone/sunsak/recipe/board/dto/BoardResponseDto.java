@@ -24,6 +24,8 @@ public class BoardResponseDto {
     private String recipeDescription;
     private String createdAt;
     private List<CommentResponseDto> comments;
+    private int likeCount;
+    private int commentCount;
 
     public BoardResponseDto(Board board, List<CommentResponseDto> comments) {
         this.postId = board.getPostId();
@@ -47,5 +49,8 @@ public class BoardResponseDto {
         this.recipeDescription = board.getRecipeDescription();
         this.createdAt = DisplayDateUtil.toDisplay(board.getCreateDate());
         this.comments = comments;
+
+        this.likeCount = board.getLikes().size();
+        this.commentCount = board.getComments().size();
     }
 }
