@@ -1,29 +1,28 @@
 package hackathon.bigone.sunsak.recipe.comment.entity;
 
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
+import hackathon.bigone.sunsak.global.base.entity.BaseTime;
 import hackathon.bigone.sunsak.recipe.board.entity.Board;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
-@Setter
 @Getter
-public class Comment {
+@Setter
+@Entity
+public class Comment extends BaseTime {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long commentId;
+    private Long id; // 댓글의 단일 기본키
+
+    private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_post_id")
+    @JoinColumn(name = "board_id")
     private Board board;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "author_id")
     private SiteUser author;
-
-    @Column(nullable = false, length = 500)
-    private String content;
-
 }
