@@ -5,7 +5,6 @@ import hackathon.bigone.sunsak.accounts.mypage.dto.question.QuestionListResponse
 import hackathon.bigone.sunsak.accounts.mypage.dto.question.QuestionRequest;
 import hackathon.bigone.sunsak.accounts.mypage.dto.question.QuestionResponse;
 import hackathon.bigone.sunsak.accounts.mypage.entity.Question;
-import hackathon.bigone.sunsak.accounts.mypage.repository.AnswerRepository;
 import hackathon.bigone.sunsak.accounts.mypage.repository.QuestionRepository;
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.accounts.user.repository.UserRepository;
@@ -23,7 +22,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class QnaService {
     private final QuestionRepository questionRepository;
-    private final AnswerRepository answerRepository;
     private final UserRepository userRepository;
     private final S3Uploader s3Uploader;
 
