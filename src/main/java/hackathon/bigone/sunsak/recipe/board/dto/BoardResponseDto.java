@@ -25,7 +25,7 @@ public class BoardResponseDto {
     private String createdAt;
     private List<CommentResponseDto> comments;
 
-    public BoardResponseDto(Board board) {
+    public BoardResponseDto(Board board, List<CommentResponseDto> comments) {
         this.postId = board.getPostId();
         this.title = board.getTitle();
         this.cookingTime = board.getCookingTime();
@@ -46,8 +46,6 @@ public class BoardResponseDto {
         this.categories = board.getCategories();
         this.recipeDescription = board.getRecipeDescription();
         this.createdAt = DisplayDateUtil.toDisplay(board.getCreateDate());
-        this.comments = board.getComments().stream()
-                .map(CommentResponseDto::new)
-                .collect(Collectors.toList());
+        this.comments = comments;
     }
 }
