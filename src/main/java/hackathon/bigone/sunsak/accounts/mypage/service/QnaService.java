@@ -44,7 +44,7 @@ public class QnaService {
                 .build();
 
         //이미지 중복 없이
-        question.addImageUrls(keys);
+        question.addImageKeys(keys);
 
         questionRepository.save(question);
 
@@ -82,7 +82,7 @@ public class QnaService {
         Question q = questionRepository.findByIdAndAuthorId(questionId, userId)
                 .orElseThrow(() -> new NoSuchElementException("해당 문의를 찾을 수 없습니다."));
 
-        List<String> viewUrls = q.getImageUrls().stream()
+        List<String> viewUrls = q.getImageKeys().stream()
                 .map(k -> s3Uploader.presignedGetUrl(k, Duration.ofMinutes(30)).toString())
                 .toList();
 
