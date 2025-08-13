@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -28,7 +29,7 @@ public class Question extends BaseTime {
     @ElementCollection
     //별도의 gna_images 테이블로 자동생성
     @CollectionTable(name = "qna_images", joinColumns = @JoinColumn(name = "question_id"))
-    @Column(name = "image_url")
+    @Column(name = "image_key")
     private List<String> imageUrls  = new ArrayList<>();
 
     @OneToOne(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -44,5 +45,14 @@ public class Question extends BaseTime {
         if (answer != null && answer.getQuestion() != this) {
             answer.setQuestion(this);
         }
+    }
+
+    public void addImageUrls(List<String> urls) {
+        if (urls == null || urls.isEmpty()) return;
+
+        urls.stream()
+                .filter(Objects::nonNull)
+                .filter(u -> !imageUrls.contains(u))
+                .forEach(imageUrls::add);
     }
 }
