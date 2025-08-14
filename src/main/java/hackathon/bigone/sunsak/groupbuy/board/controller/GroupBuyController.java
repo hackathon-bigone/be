@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -104,10 +106,13 @@ public class GroupBuyController {
         return ResponseEntity.ok("스크랩 상태가 변경되었습니다.");
     }
 
-    // 검색 기능
+    //검색
     @GetMapping("/search")
-    public ResponseEntity<List<GroupbuyResponseDto>> searchGroupbuys(@RequestParam String keyword) {
-        List<GroupbuyResponseDto> groupbuys = groupBuyService.searchGroupbuysByTitle(keyword);
+    public ResponseEntity<List<GroupbuyResponseDto>> searchGroupbuys(
+            @RequestParam String keyword,
+            @PageableDefault(size = 10, page = 0) Pageable pageable) {
+
+        List<GroupbuyResponseDto> groupbuys = groupBuyService.searchGroupbuysByTitle(keyword, pageable);
         return ResponseEntity.ok(groupbuys);
     }
 
