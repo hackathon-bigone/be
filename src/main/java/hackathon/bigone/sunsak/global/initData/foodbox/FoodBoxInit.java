@@ -17,7 +17,7 @@ public class FoodBoxInit {
     private FoodBoxRepository foodBoxRepository;
 
     @Bean
-    @Order(5)
+    @Order(4)
     public ApplicationRunner initFoodBoxes(){
         return args -> {
             if(foodBoxRepository.count() == 0){

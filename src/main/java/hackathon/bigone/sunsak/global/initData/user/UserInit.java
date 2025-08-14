@@ -16,7 +16,7 @@ public class UserInit {
     private final PasswordEncoder passwordEncoder;
 
     @Bean
-    @Order(4) //초기 데이터 실행 순서
+    @Order(3) //초기 데이터 실행 순서
     public ApplicationRunner initUsers(){
         return args -> {
             //userRepository.deleteAll();
