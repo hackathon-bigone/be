@@ -53,7 +53,7 @@ public class Board {
     @JoinColumn(name = "user_id")
     private SiteUser author;
 
-    //단계
+    // 단계
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     @Size(max = 15, message = "레시피 단계는 최대 15개까지 가능합니다.")
     private List<Step> steps = new ArrayList<>();
@@ -65,17 +65,18 @@ public class Board {
     @Column(nullable = true)
     private List<RecipeCategory> categories = new ArrayList<>();
 
-    // 좋아요 리스트
+    // 좋아요 리스트 (중복 선언 삭제)
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RecipeLike> likes;
+    private List<RecipeLike> likes = new ArrayList<>();
 
-    // 스크랩 리스트
+    // 댓글 리스트 (중복 선언 삭제)
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RecipeScrap> scraps;
+    private List<Comment> comments = new ArrayList<>();
+
+    // 스크랩 리스트 (초기화)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecipeScrap> scraps = new ArrayList<>();
 
     @CreatedDate
     private LocalDateTime createDate;
-
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments = new ArrayList<>();
 }
