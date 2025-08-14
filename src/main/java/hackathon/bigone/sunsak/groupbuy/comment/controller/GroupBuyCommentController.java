@@ -16,7 +16,7 @@ import java.util.List;
 
 @RequestMapping("/groupbuys/{groupbuyId}/comments")
 @RequiredArgsConstructor
-@RestController("groupbuyCommentController")
+@RestController
 public class GroupBuyCommentController {
 
     private final GroupBuyCommentService GroupBuyCommentService;
