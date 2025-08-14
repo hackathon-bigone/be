@@ -51,17 +51,24 @@ public class OcrController {
             aggregated.merge(e.getKey().trim(), Math.max(1, e.getValue()), Integer::sum);
         }
 
-        // 3-2) 자유명사 그룹: keyword 매핑 성공한 것만 사용
+        // 자유명사 그룹: keyword 매핑 성공한 것만 사용
         for (var e : freeNounGroup.entrySet()) {
             String mapped = mappedFree.get(e.getKey());
             if (mapped == null || mapped.isBlank()) continue; // 매핑 실패 → 버림
             aggregated.merge(mapped.trim(), Math.max(1, e.getValue()), Integer::sum);
         }
 
-        // 4) 응답 변환
+        // 응답 변환
         List<FoodItemResponse> result = aggregated.entrySet().stream()
+                .filter(e -> e.getKey() != null && !e.getKey().isBlank()) //name 없는 항목 제거
                 .map(e -> new FoodItemResponse(e.getKey(), e.getValue()))
                 .collect(Collectors.toList());
+
+        if (result.isEmpty()) {
+            return ResponseEntity.ok()
+                    .header("X-App-Message", "영수증을 인식하지 못했어요. 다시 촬영해 주세요.")
+                    .body(Collections.emptyList());
+        }
 
         log.debug("OCR upload result: {}", result);
         return ResponseEntity.ok(result);
