@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -14,5 +15,5 @@ public class GroupbuyRequestDto {
     private String groupbuyDescription;
     private String mainImageUrl;
     private Integer groupbuyCount;
-    private List<String> groupbuyLinkUrls;
+    private List<String> groupbuyLinkUrls = new ArrayList<>();
 }
