@@ -1,5 +1,6 @@
 package hackathon.bigone.sunsak.groupbuy.comment.dto;
 
+import hackathon.bigone.sunsak.global.util.DisplayDateUtil;
 import hackathon.bigone.sunsak.groupbuy.comment.entity.GroupBuyComment;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,9 +17,8 @@ public class GroupBuyCommentResponseDto {
     private Long id;
     private String content;
     private String authorName;
-    private LocalDateTime createDate;
+    private String createdAt;
     private Long parentId;
-
     private List<GroupBuyCommentResponseDto> children;
 
     // 엔티티를 DTO로 변환하는 생성자
@@ -26,7 +26,7 @@ public class GroupBuyCommentResponseDto {
         this.id = groupBuyComment.getId();
         this.content = groupBuyComment.getContent();
         this.authorName = (groupBuyComment.getAuthor() != null) ? groupBuyComment.getAuthor().getNickname() : null;
-        this.createDate = groupBuyComment.getCreateDate();
+        this.createdAt = DisplayDateUtil.toDisplay(groupBuyComment.getCreateDate());
         if (groupBuyComment.getParent() != null) {
             this.parentId = groupBuyComment.getParent().getId();
         }

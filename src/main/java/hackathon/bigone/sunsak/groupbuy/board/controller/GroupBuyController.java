@@ -103,4 +103,18 @@ public class GroupBuyController {
         groupBuyService.toggleScrap(groupbuyId, currentUser);
         return ResponseEntity.ok("스크랩 상태가 변경되었습니다.");
     }
+
+    // 검색 기능
+    @GetMapping("/search")
+    public ResponseEntity<List<GroupbuyResponseDto>> searchGroupbuys(@RequestParam String keyword) {
+        List<GroupbuyResponseDto> groupbuys = groupBuyService.searchGroupbuysByTitle(keyword);
+        return ResponseEntity.ok(groupbuys);
     }
+
+    // 총 게시물 개수 조회
+    @GetMapping("/count")
+    public ResponseEntity<Long> countGroupbuys() {
+        long count = groupBuyService.countAllGroupbuys();
+        return ResponseEntity.ok(count);
+    }
+}

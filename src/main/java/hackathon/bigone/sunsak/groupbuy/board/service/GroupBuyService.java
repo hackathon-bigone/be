@@ -132,4 +132,16 @@ public class GroupBuyService {
             GroupBuyScrapRepository.save(newScrap);
         }
     }
+
+    //검색
+    public List<GroupbuyResponseDto> searchGroupbuysByTitle(String keyword) {
+        List<Groupbuy> groupbuys = groupBuyRepository.findByGroupbuyTitleContaining(keyword);
+        return groupbuys.stream()
+                .map(GroupbuyResponseDto::new)
+                .collect(Collectors.toList());
+    }
+
+    public long countAllGroupbuys() {
+        return groupBuyRepository.count();
+    }
 }
