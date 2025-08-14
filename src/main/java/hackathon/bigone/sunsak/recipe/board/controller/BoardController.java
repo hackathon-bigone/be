@@ -112,7 +112,6 @@ public class BoardController {
         }
     }
 
-    // 기존 API (변경 없음)
     @PostMapping("/{postId}/like")
     public ResponseEntity<String> toggleLike(
             @PathVariable Long postId,
@@ -126,7 +125,6 @@ public class BoardController {
         return ResponseEntity.ok("좋아요 상태가 변경되었습니다.");
     }
 
-    // 기존 API (변경 없음)
     @PostMapping("/{postId}/scrap")
     public ResponseEntity<String> toggleScrap(
             @PathVariable Long postId,
@@ -138,5 +136,12 @@ public class BoardController {
         SiteUser currentUser = userDetail.getUser();
         boardService.toggleScrap(postId, currentUser);
         return ResponseEntity.ok("스크랩 상태가 변경되었습니다.");
+    }
+
+    //검색
+    @GetMapping("/search")
+    public ResponseEntity<List<BoardResponseDto>> searchBoards(@RequestParam String keywords){
+        List<BoardResponseDto> results = boardService.findBoardByKeywords(keywords);
+        return ResponseEntity.ok(results);
     }
 }

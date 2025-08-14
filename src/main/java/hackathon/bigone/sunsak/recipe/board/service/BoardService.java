@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -212,6 +213,24 @@ public class BoardService {
     public List<BoardResponseDto> getScrapBoardsByUser(SiteUser user) {
         return scrapRepository.findByUser(user).stream()
                 .map(RecipeScrap::getBoard)
+                .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<BoardResponseDto> findBoardByKeywords(String keywords){
+        List<Board> searchResults;
+
+        if (keywords.contains(",")) {
+            List<String> keywordList = Arrays.asList(keywords.split(","));
+            searchResults = boardRepository.findByKeywords(keywordList);
+        }
+        else{
+            searchResults = boardRepository.findBySingleKeyword(keywords);
+
+        }
+
+        return searchResults.stream()
                 .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
                 .collect(Collectors.toList());
     }
