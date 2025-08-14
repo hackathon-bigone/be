@@ -1,6 +1,5 @@
 package hackathon.bigone.sunsak.home.controller;
 
-import hackathon.bigone.sunsak.foodbox.foodbox.service.FoodBoxQueryService;
 import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
 import hackathon.bigone.sunsak.home.dto.HomeFoodDto;
 import hackathon.bigone.sunsak.home.service.HomeService;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/home")
 public class HomeController {
-    private final FoodBoxQueryService foodBoxQueryService;
     private final HomeService homeService;
 
     @GetMapping("/foodbox")
@@ -27,5 +25,4 @@ public class HomeController {
         }
         return ResponseEntity.ok(homeService.getImminentFoods(userDetail.getId()));
     }
-
 }
