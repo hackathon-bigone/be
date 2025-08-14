@@ -18,7 +18,6 @@ public class Comment extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 댓글의 단일 기본키
-
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
