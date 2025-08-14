@@ -1,10 +1,8 @@
 package hackathon.bigone.sunsak.groupbuy.board.controller;
 
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
-import hackathon.bigone.sunsak.global.aws.s3.dto.PresignUploadRequest;
-import hackathon.bigone.sunsak.global.aws.s3.dto.PresignUploadResponse;
+import hackathon.bigone.sunsak.accounts.user.repository.UserRepository;
 import hackathon.bigone.sunsak.global.aws.s3.service.PresignUploadService;
-import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
 import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyRequestDto;
 import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyResponseDto;
 import hackathon.bigone.sunsak.groupbuy.board.service.GroupBuyService;
@@ -14,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
@@ -27,18 +26,26 @@ public class GroupBuyController {
 
     private final GroupBuyService groupBuyService;
     private final PresignUploadService presignUploadService;
+    private final UserRepository userRepository;
 
     @PostMapping
     public ResponseEntity<GroupbuyResponseDto> createGroupbuy(
             @RequestBody @Valid GroupbuyRequestDto groupbuyRequestDto,
-            @AuthenticationPrincipal SiteUser user) {
+            @AuthenticationPrincipal UserDetails userDetails) {
 
-        if (user == null) {
+        if (userDetails == null) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
+
+        // username으로 SiteUser 조회
+        SiteUser user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("로그인 사용자 정보를 찾을 수 없습니다."));
+
         GroupbuyResponseDto createdGroupbuy = groupBuyService.create(groupbuyRequestDto, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdGroupbuy);
     }
+
+
 
     //전체조회
     @GetMapping

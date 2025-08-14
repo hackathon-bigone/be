@@ -37,18 +37,15 @@ public class GroupbuyResponseDto {
         this.status = groupbuy.getStatus();
         this.createDate = groupbuy.getCreateDate();
 
-        this.authorName = (groupbuy.getAuthor() != null) ? groupbuy.getAuthor().getUsername() : null;
+        this.authorName = (groupbuy.getAuthor() != null) ? groupbuy.getAuthor().getNickname() : null;
 
         this.groupbuyLinkUrls = (groupbuy.getBuyLinks() != null) ?
                 groupbuy.getBuyLinks().stream()
                         .map(GroupBuyLink::getGroupbuylinkUrl)
                         .collect(Collectors.toList()) :
-                List.of(); // 또는 null
-
-        // ✅ Null 체크 로직 추가
+                List.of();
         this.scrapCount = (groupbuy.getScraps() != null) ? groupbuy.getScraps().size() : 0;
 
-        // ✅ Null 체크 로직 추가
         this.commentCount = (groupbuy.getGroupBuyComments() != null) ? groupbuy.getGroupBuyComments().size() : 0;
     }
 }
