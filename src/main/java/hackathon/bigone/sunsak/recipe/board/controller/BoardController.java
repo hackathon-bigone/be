@@ -36,8 +36,9 @@ public class BoardController {
     }
     // 게시글 전체 조회
     @GetMapping
-    public ResponseEntity<List<BoardResponseDto>> getAllBoards() {
-        List<BoardResponseDto> boards = boardService.findAllBoards();
+    public ResponseEntity<List<BoardResponseDto>> getAllBoards(
+            @RequestParam(defaultValue = "recent") String sort) {
+        List<BoardResponseDto> boards = boardService.findAllBoards(sort);
         return ResponseEntity.ok(boards);
     }
 

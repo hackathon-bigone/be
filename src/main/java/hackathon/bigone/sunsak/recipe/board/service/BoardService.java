@@ -11,6 +11,7 @@ import hackathon.bigone.sunsak.recipe.comment.dto.CommentResponseDto;
 import hackathon.bigone.sunsak.recipe.comment.service.CommentService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -145,8 +146,27 @@ public class BoardService {
     }
 
     @Transactional(readOnly = true)
-    public List<BoardResponseDto> findAllBoards() {
-        return boardRepository.findAll().stream()
+    public List<BoardResponseDto> findAllBoards(String sort) {
+        Sort sortBy = Sort.by(Sort.Direction.DESC, "createDate");
+
+        if ("popular".equalsIgnoreCase(sort)) {
+            return findPopularBoards();
+        }
+
+        // 최신순 정렬
+        List<Board> boards = boardRepository.findAll(sortBy);
+        return boards.stream()
+                .map(board -> {
+                    List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
+                    return new BoardResponseDto(board, comments);
+                })
+                .collect(Collectors.toList());
+    }
+    //인기순 조회
+    @Transactional(readOnly = true)
+    public List<BoardResponseDto> findPopularBoards() {
+        List<Board> boards = boardRepository.findAllByPopularity();
+        return boards.stream()
                 .map(board -> {
                     List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
                     return new BoardResponseDto(board, comments);

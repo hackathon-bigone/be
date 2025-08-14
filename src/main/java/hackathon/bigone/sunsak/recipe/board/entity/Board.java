@@ -65,15 +65,15 @@ public class Board {
     @Column(nullable = true)
     private List<RecipeCategory> categories = new ArrayList<>();
 
-    // 좋아요 리스트 (중복 선언 삭제)
+    // 좋아요 리스트
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecipeLike> likes = new ArrayList<>();
 
-    // 댓글 리스트 (중복 선언 삭제)
+    // 댓글 리스트
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
-    // 스크랩 리스트 (초기화)
+    // 스크랩 리스트
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecipeScrap> scraps = new ArrayList<>();
 
