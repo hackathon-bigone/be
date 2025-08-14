@@ -3,6 +3,7 @@ package hackathon.bigone.sunsak.groupbuy.board.controller;
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.accounts.user.repository.UserRepository;
 import hackathon.bigone.sunsak.global.aws.s3.service.PresignUploadService;
+import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
 import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyRequestDto;
 import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyResponseDto;
 import hackathon.bigone.sunsak.groupbuy.board.service.GroupBuyService;
@@ -90,13 +91,15 @@ public class GroupBuyController {
 
     //스크랩
     @PostMapping("/{groupbuyId}/scrap")
-    public ResponseEntity<Void> scrapGroupbuy(
+    public ResponseEntity<String> toggleScrap(
             @PathVariable Long groupbuyId,
-            @AuthenticationPrincipal SiteUser user) {
-        if (user == null) {
-            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+            @AuthenticationPrincipal CustomUserDetail userDetail
+    ) {
+        if (userDetail == null) {
+            return new ResponseEntity<>("로그인이 필요합니다.", HttpStatus.UNAUTHORIZED);
         }
-        groupBuyService.scrap(groupbuyId, user);
-        return ResponseEntity.ok().build();
+        SiteUser currentUser = userDetail.getUser();
+        groupBuyService.toggleScrap(groupbuyId, currentUser);
+        return ResponseEntity.ok("스크랩 상태가 변경되었습니다.");
     }
     }

@@ -9,6 +9,8 @@ import hackathon.bigone.sunsak.groupbuy.board.entity.GroupBuyScrap;
 import hackathon.bigone.sunsak.groupbuy.board.enums.GroupBuyStatus;
 import hackathon.bigone.sunsak.groupbuy.board.repository.GroupBuyRepository;
 import hackathon.bigone.sunsak.groupbuy.board.repository.GroupBuyScrapRepository;
+import hackathon.bigone.sunsak.recipe.board.entity.Board;
+import hackathon.bigone.sunsak.recipe.board.entity.RecipeScrap;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
 public class GroupBuyService {
     private final GroupBuyRepository groupBuyRepository;
     private final GroupBuyScrapRepository GroupBuyScrapRepository;
+    private final GroupBuyScrapRepository groupBuyScrapRepository;
 
 
     //공동구매 생성 기능
@@ -114,16 +118,13 @@ public class GroupBuyService {
 
     //공동구매 스크랩 기능
     @Transactional
-    public void scrap(Long groupbuyId, SiteUser user) {
+    public void toggleScrap(Long groupbuyId, SiteUser user) {
         Groupbuy groupbuy = groupBuyRepository.findById(groupbuyId)
                 .orElseThrow(() -> new EntityNotFoundException("공동구매 게시글을 찾을 수 없습니다."));
+        Optional<GroupBuyScrap> existingScrap = GroupBuyScrapRepository.findByUserAndGroupbuy(user, groupbuy);
 
-        boolean isScrapped = GroupBuyScrapRepository.existsByUserAndGroupbuy(user, groupbuy);
-
-        if (isScrapped) {
-            GroupBuyScrap scrap = GroupBuyScrapRepository.findByUserAndGroupbuy(user, groupbuy)
-                    .orElseThrow(() -> new EntityNotFoundException("스크랩 정보를 찾을 수 없습니다."));
-            GroupBuyScrapRepository.delete(scrap);
+        if (existingScrap.isPresent()) {
+            GroupBuyScrapRepository.delete(existingScrap.get());
         } else {
             GroupBuyScrap newScrap = new GroupBuyScrap();
             newScrap.setUser(user);

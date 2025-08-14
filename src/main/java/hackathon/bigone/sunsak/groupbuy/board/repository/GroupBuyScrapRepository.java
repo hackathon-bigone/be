@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface GroupBuyScrapRepository extends JpaRepository<GroupBuyScrap, Long> {
     boolean existsByUserAndGroupbuy(SiteUser user, Groupbuy groupbuy);
     Optional<GroupBuyScrap> findByUserAndGroupbuy(SiteUser user, Groupbuy groupbuy);
+
 }
