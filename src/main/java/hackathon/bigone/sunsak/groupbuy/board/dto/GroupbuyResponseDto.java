@@ -38,9 +38,7 @@ public class GroupbuyResponseDto {
         this.status = groupbuy.getStatus();
         this.createDate = groupbuy.getCreateDate();
 
-        if (groupbuy.getAuthor() != null) {
-            this.authorName = groupbuy.getAuthor().getUsername();
-        }
+        this.authorName = groupbuy.getAuthor().getUsername();
 
         this.groupbuyLinkUrls = groupbuy.getBuyLinks().stream()
                 .map(GroupBuyLink::getGroupbuylinkUrl)
