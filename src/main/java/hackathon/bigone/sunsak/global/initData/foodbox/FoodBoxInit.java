@@ -41,5 +41,7 @@ public class FoodBoxInit {
         );
 
         foodBoxRepository.saveAll(initFoods);
+
+        System.out.println("초기 식품 데이터 넣기 완료");
     }
 }

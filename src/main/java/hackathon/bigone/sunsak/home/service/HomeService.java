@@ -1,0 +1,65 @@
+package hackathon.bigone.sunsak.home.service;
+
+import hackathon.bigone.sunsak.foodbox.foodbox.service.FoodBoxQueryService;
+import hackathon.bigone.sunsak.home.dto.HomeFoodDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
+@Service
+@RequiredArgsConstructor
+public class HomeService {
+    private final FoodBoxQueryService foodBoxQueryService;
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final DateTimeFormatter KOREAN_DATE = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
+
+    private String todayKor() {
+        return LocalDate.now(KST).format(KOREAN_DATE);
+    }
+
+    public HomeFoodDto getImminentFoods(Long userId) {
+        var imminentList = foodBoxQueryService.getImminentList(userId, 7).getItems()
+                .stream()
+                .filter(item -> !item.getDLabel().startsWith("D+")) // D+ 제거
+                .toList();
+
+        if (imminentList.isEmpty()) {
+            return HomeFoodDto.builder()
+                    .today(todayKor())
+                    .message("유통기한 임박 식품이 아직 없어요!")
+                    .summary(null)
+                    .dLabel("안전")
+                    .build();
+        }
+
+        if (imminentList.size() == 1) { //음식이 1개일 때
+            var only = imminentList.get(0);
+            return HomeFoodDto.builder()
+                    .today(todayKor())
+                    .message("유통기한이 얼마 남지 않았어요!")
+                    .summary(only.getName() + " " + only.getQuantity() + "개")
+                    .dLabel(only.getDLabel())
+                    .build();
+        }
+
+        var first = imminentList.get(0);
+        return HomeFoodDto.builder()
+                .today(todayKor())
+                .message("유통기한이 얼마 남지 않았어요!")
+                .summary(first.getName()+" 외 "+(imminentList.size() - 1)+"개")
+                .dLabel(first.getDLabel())
+                .build();
+
+    }
+
+    public HomeFoodDto getGuestFoodBox() {
+        return HomeFoodDto.builder()
+                .today(todayKor())
+                .message("로그인하고 식품 관리를 시작해보세요!")
+                .summary(null)
+                .build();
+    }
+}
