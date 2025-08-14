@@ -1,5 +1,6 @@
 package hackathon.bigone.sunsak.recipe.board.dto;
 
+import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.global.util.DisplayDateUtil;
 import hackathon.bigone.sunsak.recipe.board.entity.Board;
 import hackathon.bigone.sunsak.recipe.board.enums.RecipeCategory;
@@ -26,12 +27,16 @@ public class BoardResponseDto {
     private List<CommentResponseDto> comments;
     private int likeCount;
     private int commentCount;
+    private String authorName;
 
     public BoardResponseDto(Board board, List<CommentResponseDto> comments) {
         this.postId = board.getPostId();
         this.title = board.getTitle();
         this.cookingTime = board.getCookingTime();
         this.mainImageUrl = board.getMainImageUrl();
+        this.authorName = board.getAuthor() != null
+                ? board.getAuthor().getNickname() // 🔹 nickname 사용
+                : null;
 
         this.steps = board.getSteps().stream()
                 .map(StepResponseDto::new)

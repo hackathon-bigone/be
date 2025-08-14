@@ -15,7 +15,7 @@ public class CommentResponseDto {
 
     private Long commentId;
     private Long boardPostId;
-    private Long authorId;
+    private String authorName;
     private String content;
     private String createdAt;
     private List<CommentResponseDto> children;
@@ -27,7 +27,7 @@ public class CommentResponseDto {
     public CommentResponseDto(Comment comment) {
         this.commentId = comment.getId();
         this.boardPostId = comment.getBoard().getPostId();
-        this.authorId = comment.getAuthor().getId();
+        this.authorName = comment.getAuthor().getNickname();
         this.content = comment.getContent();
         this.createdAt = DisplayDateUtil.toDisplay(comment.getCreateDate());
         // 자식 댓글이 있다면, 재귀적으로 DTO로 변환하여 children 필드에 저장
