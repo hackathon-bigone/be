@@ -12,9 +12,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+
 @RequiredArgsConstructor
 @RequestMapping("/recipe/{boardPostId}/comments")
+@RestController("recipeCommentController")
 public class CommentController {
 
     private final CommentService commentService;
