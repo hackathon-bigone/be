@@ -3,9 +3,9 @@ package hackathon.bigone.sunsak.groupbuy.board.dto;
 import hackathon.bigone.sunsak.groupbuy.board.entity.Groupbuy;
 import hackathon.bigone.sunsak.groupbuy.board.entity.GroupBuyLink;
 import hackathon.bigone.sunsak.groupbuy.board.enums.GroupBuyStatus;
+import hackathon.bigone.sunsak.groupbuy.comment.dto.GroupBuyCommentResponseDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,12 +21,13 @@ public class GroupbuyResponseDto {
     private int groupbuyCount;
     private GroupBuyStatus status;
     private LocalDateTime createDate;
-    private String authorName; // 작성자 이름
+    private String authorName;
 
     private List<String> groupbuyLinkUrls;
 
     private int scrapCount;
     private int commentCount;
+    private List<GroupBuyCommentResponseDto> comments;
 
     public GroupbuyResponseDto(Groupbuy groupbuy) {
         this.groupbuyId = groupbuy.getGroupbuyId();
@@ -47,5 +48,15 @@ public class GroupbuyResponseDto {
         this.scrapCount = (groupbuy.getScraps() != null) ? groupbuy.getScraps().size() : 0;
 
         this.commentCount = (groupbuy.getGroupBuyComments() != null) ? groupbuy.getGroupBuyComments().size() : 0;
+        this.comments = (groupbuy.getGroupBuyComments() != null) ?
+                groupbuy.getGroupBuyComments().stream()
+                        .map(GroupBuyCommentResponseDto::new)
+                        .collect(Collectors.toList()) :
+                List.of();
+    }
+
+    public GroupbuyResponseDto(Groupbuy groupbuy, List<GroupBuyCommentResponseDto> comments) {
+        this(groupbuy);
+        this.comments = comments;
     }
 }

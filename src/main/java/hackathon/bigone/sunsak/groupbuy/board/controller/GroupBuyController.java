@@ -32,15 +32,12 @@ public class GroupBuyController {
     @PostMapping
     public ResponseEntity<GroupbuyResponseDto> createGroupbuy(
             @RequestBody @Valid GroupbuyRequestDto groupbuyRequestDto,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal CustomUserDetail userDetail) {
 
-        if (userDetails == null) {
+        if (userDetail == null) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
-
-        // username으로 SiteUser 조회
-        SiteUser user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("로그인 사용자 정보를 찾을 수 없습니다."));
+        SiteUser user = userDetail.getUser();
 
         GroupbuyResponseDto createdGroupbuy = groupBuyService.create(groupbuyRequestDto, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdGroupbuy);
@@ -69,26 +66,30 @@ public class GroupBuyController {
     public ResponseEntity<GroupbuyResponseDto> updateGroupbuy(
             @PathVariable Long groupbuyId,
             @RequestBody @Valid GroupbuyRequestDto groupbuyRequestDto,
-            @AuthenticationPrincipal SiteUser user) {
-        if (user == null) {
+            @AuthenticationPrincipal CustomUserDetail userDetail) {
+
+        if (userDetail == null) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
+        SiteUser user = userDetail.getUser();
         GroupbuyResponseDto updatedGroupbuy = groupBuyService.update(groupbuyId, groupbuyRequestDto, user);
         return ResponseEntity.ok(updatedGroupbuy);
     }
+
 
     //삭제
     @DeleteMapping("/{groupbuyId}")
     public ResponseEntity<Void> deleteGroupbuy(
             @PathVariable Long groupbuyId,
-            @AuthenticationPrincipal SiteUser user) {
-        if (user == null) {
+            @AuthenticationPrincipal CustomUserDetail userDetail) {
+
+        if (userDetail == null) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
+        SiteUser user = userDetail.getUser();
         groupBuyService.delete(groupbuyId, user);
         return ResponseEntity.noContent().build();
     }
-
     //스크랩
     @PostMapping("/{groupbuyId}/scrap")
     public ResponseEntity<String> toggleScrap(
