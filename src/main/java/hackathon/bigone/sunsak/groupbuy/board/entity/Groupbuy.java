@@ -51,7 +51,7 @@ public class Groupbuy {
 
     // 작성자
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private SiteUser author;
 
     //댓글

@@ -55,12 +55,11 @@ public class GroupBuyService {
     }
 
     //공동구매 수정 기능
-    @Transactional
     public GroupbuyResponseDto update(Long groupbuyId, GroupbuyRequestDto groupdto, SiteUser author) {
         Groupbuy groupbuy = groupBuyRepository.findById(groupbuyId)
                 .orElseThrow(() -> new EntityNotFoundException("공동구매 게시글을 찾을 수 없습니다."));
 
-        if (!groupbuy.getAuthor().equals(author)) {
+        if (groupbuy.getAuthor() == null || !groupbuy.getAuthor().equals(author)) {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
 
@@ -68,6 +67,15 @@ public class GroupBuyService {
         groupbuy.setGroupbuyDescription(groupdto.getGroupbuyDescription());
         groupbuy.setGroupbuyCount(groupdto.getGroupbuyCount());
         groupbuy.setMainImageUrl(groupdto.getMainImageUrl());
+        groupbuy.getBuyLinks().clear();
+        groupdto.getGroupbuyLinkUrls().stream()
+                .map(url -> {
+                    GroupBuyLink newLink = new GroupBuyLink();
+                    newLink.setGroupbuylinkUrl(url);
+                    newLink.setGroupbuy(groupbuy);
+                    return newLink;
+                })
+                .forEach(link -> groupbuy.getBuyLinks().add(link));
 
 
         return new GroupbuyResponseDto(groupbuy);
