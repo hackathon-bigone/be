@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-@Setter
 @NoArgsConstructor
 public class GroupbuyResponseDto {
     private Long groupbuyId;
@@ -38,14 +37,18 @@ public class GroupbuyResponseDto {
         this.status = groupbuy.getStatus();
         this.createDate = groupbuy.getCreateDate();
 
-        this.authorName = (groupbuy.getAuthor() != null)? groupbuy.getAuthor().getUsername() : null;
+        this.authorName = (groupbuy.getAuthor() != null) ? groupbuy.getAuthor().getUsername() : null;
 
-        this.groupbuyLinkUrls = groupbuy.getBuyLinks().stream()
-                .map(GroupBuyLink::getGroupbuylinkUrl)
-                .collect(Collectors.toList());
+        this.groupbuyLinkUrls = (groupbuy.getBuyLinks() != null) ?
+                groupbuy.getBuyLinks().stream()
+                        .map(GroupBuyLink::getGroupbuylinkUrl)
+                        .collect(Collectors.toList()) :
+                List.of(); // 또는 null
 
+        // ✅ Null 체크 로직 추가
+        this.scrapCount = (groupbuy.getScraps() != null) ? groupbuy.getScraps().size() : 0;
 
-        this.scrapCount = groupbuy.getScraps().size();
-        this.commentCount = groupbuy.getGroupBuyComments().size();
+        // ✅ Null 체크 로직 추가
+        this.commentCount = (groupbuy.getGroupBuyComments() != null) ? groupbuy.getGroupBuyComments().size() : 0;
     }
 }

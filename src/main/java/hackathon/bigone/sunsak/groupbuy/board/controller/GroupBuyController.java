@@ -33,6 +33,9 @@ public class GroupBuyController {
             @RequestBody @Valid GroupbuyRequestDto groupbuyRequestDto,
             @AuthenticationPrincipal SiteUser user) {
 
+        if (user == null) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
         GroupbuyResponseDto createdGroupbuy = groupBuyService.create(groupbuyRequestDto, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdGroupbuy);
     }
@@ -59,49 +62,34 @@ public class GroupBuyController {
             @PathVariable Long groupbuyId,
             @RequestBody @Valid GroupbuyRequestDto groupbuyRequestDto,
             @AuthenticationPrincipal SiteUser user) {
-
+        if (user == null) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
         GroupbuyResponseDto updatedGroupbuy = groupBuyService.update(groupbuyId, groupbuyRequestDto, user);
         return ResponseEntity.ok(updatedGroupbuy);
     }
 
+    //삭제
     @DeleteMapping("/{groupbuyId}")
     public ResponseEntity<Void> deleteGroupbuy(
             @PathVariable Long groupbuyId,
             @AuthenticationPrincipal SiteUser user) {
-
+        if (user == null) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
         groupBuyService.delete(groupbuyId, user);
         return ResponseEntity.noContent().build();
     }
 
+    //스크랩
     @PostMapping("/{groupbuyId}/scrap")
     public ResponseEntity<Void> scrapGroupbuy(
             @PathVariable Long groupbuyId,
             @AuthenticationPrincipal SiteUser user) {
-
+        if (user == null) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
         groupBuyService.scrap(groupbuyId, user);
         return ResponseEntity.ok().build();
     }
-
-
-    @PostMapping("/uploads/{prefix}")
-    public ResponseEntity<Object> getPresignedUrls(
-            @PathVariable String prefix,
-            @RequestBody List<PresignUploadRequest> reqList,
-            @AuthenticationPrincipal CustomUserDetail userDetail
-    ) {
-        if (userDetail == null) {
-            return new ResponseEntity<>("로그인이 필요합니다.", HttpStatus.UNAUTHORIZED);
-        }
-        Long userId = userDetail.getUser().getId();
-        Duration ttl = Duration.ofMinutes(10);
-
-        try {
-            List<PresignUploadResponse> response = presignUploadService.issuePresigned(prefix, userId, reqList, ttl);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            log.error("Pre-signed URL 발급 중 오류 발생", e);
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
     }
-
-}
