@@ -154,12 +154,11 @@ public class BoardService {
         }
 
         // 최신순 정렬
+        sortBy = Sort.by(Sort.Direction.DESC, "createDate");
+
         List<Board> boards = boardRepository.findAll(sortBy);
         return boards.stream()
-                .map(board -> {
-                    List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
-                    return new BoardResponseDto(board, comments);
-                })
+                .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
                 .collect(Collectors.toList());
     }
     //인기순 조회
