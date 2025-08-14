@@ -28,6 +28,12 @@ public class BoardController {
     private final BoardService boardService;
     private final PresignUploadService presignUploadService;
 
+    //검색
+    @GetMapping("/search")
+    public ResponseEntity<List<BoardResponseDto>> searchBoards(@RequestParam String keywords){
+        List<BoardResponseDto> results = boardService.findBoardByKeywords(keywords);
+        return ResponseEntity.ok(results);
+    }
     // 게시글 전체 조회
     @GetMapping
     public ResponseEntity<List<BoardResponseDto>> getAllBoards() {
@@ -77,6 +83,7 @@ public class BoardController {
         boardService.create(boardDto, author);
         return new ResponseEntity<>("게시글이 성공적으로 생성되었습니다.", HttpStatus.CREATED);
     }
+
 
     // 게시글 수정 API
     @PatchMapping("/{postId}")
@@ -138,10 +145,5 @@ public class BoardController {
         return ResponseEntity.ok("스크랩 상태가 변경되었습니다.");
     }
 
-    //검색
-    @GetMapping("/search")
-    public ResponseEntity<List<BoardResponseDto>> searchBoards(@RequestParam String keywords){
-        List<BoardResponseDto> results = boardService.findBoardByKeywords(keywords);
-        return ResponseEntity.ok(results);
-    }
+
 }

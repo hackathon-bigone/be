@@ -15,10 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -218,16 +215,22 @@ public class BoardService {
     }
 
     @Transactional(readOnly = true)
-    public List<BoardResponseDto> findBoardByKeywords(String keywords){
-        List<Board> searchResults;
+    public List<BoardResponseDto> findBoardByKeywords(String keywords) {
+        List<Board> searchResults = new ArrayList<>();
 
         if (keywords.contains(",")) {
-            List<String> keywordList = Arrays.asList(keywords.split(","));
-            searchResults = boardRepository.findByKeywords(keywordList);
-        }
-        else{
-            searchResults = boardRepository.findBySingleKeyword(keywords);
+            List<String> keywordList = Arrays.stream(keywords.split(","))
+                    .map(String::trim)
+                    .collect(Collectors.toList());
 
+            Set<Board> uniqueBoards = new HashSet<>();
+            for (String keyword : keywordList) {
+                uniqueBoards.addAll(boardRepository.findBySingleKeyword(keyword));
+            }
+            searchResults.addAll(uniqueBoards);
+        }
+        else {
+            searchResults = boardRepository.findBySingleKeyword(keywords.trim());
         }
 
         return searchResults.stream()
