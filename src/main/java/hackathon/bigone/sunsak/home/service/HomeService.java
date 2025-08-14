@@ -52,14 +52,19 @@ public class HomeService {
                 .filter(f -> f.getDaysLeft() == minDaysLeft)
                 .toList();
 
-        var first = imminentList.get(0);
+        var first = sameDayFoods.get(0);
+
+        String summary = (sameDayFoods.size() == 1)
+                ? first.getName() + " " + first.getQuantity() + "개"
+                : first.getName() + " 외 " + (sameDayFoods.size() - 1) + "개";
+
+
         return HomeFoodDto.builder()
                 .today(todayKor())
                 .message("유통기한이 얼마 남지 않았어요!")
-                .summary(first.getName()+" 외 "+(imminentList.size() - 1)+"개")
-                .dLabel(first.getDLabel())
+                .summary(summary)
+                .dLabel(first.getDLabel()) // D-0, D-1 등
                 .build();
-
     }
 
     public HomeFoodDto getGuestFoodBox() {
