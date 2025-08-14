@@ -45,13 +45,15 @@ public class GroupBuyCommentService {
 
     @Transactional(readOnly = true)
     public List<GroupBuyCommentResponseDto> getComments(Long groupbuyId) {
-        List<GroupBuyComment> allGroupBuyComments = groupbuyCommentRepository.findByGroupbuy_GroupbuyId(groupbuyId);
+        List<GroupBuyComment> allGroupBuyComments = groupbuyCommentRepository
+                .findByGroupbuy_GroupbuyId(groupbuyId);
 
         return allGroupBuyComments.stream()
                 .filter(comment -> comment.getParent() == null)
                 .map(GroupBuyCommentResponseDto::new)
                 .collect(Collectors.toList());
     }
+
 
     @Transactional
     public void deleteComment(Long groupbuyId, Long commentId, SiteUser currentUser) {
