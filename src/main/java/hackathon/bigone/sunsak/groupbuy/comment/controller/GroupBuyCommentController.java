@@ -14,15 +14,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
-@RequestMapping("/groupbuys/{groupbuyId}/comments")
 @RequiredArgsConstructor
+@RequestMapping("/groupbuys/{groupbuyId}/comments")
 @RestController
 public class GroupBuyCommentController {
 
-    private final GroupBuyCommentService GroupBuyCommentService;
+    private final GroupBuyCommentService groupBuyCommentService;
 
-    //댓글 작성
+    // 댓글 작성
     @PostMapping
     public ResponseEntity<GroupBuyCommentResponseDto> addComment(
             @PathVariable Long groupbuyId,
@@ -34,19 +33,18 @@ public class GroupBuyCommentController {
         }
 
         SiteUser user = userDetail.getUser();
-        GroupBuyCommentResponseDto newComment = GroupBuyCommentService.addComment(groupbuyId, requestDto, user);
+        GroupBuyCommentResponseDto newComment = groupBuyCommentService.addComment(groupbuyId, requestDto, user);
         return new ResponseEntity<>(newComment, HttpStatus.CREATED);
     }
 
-    //댓글 조회
+    // 댓글 조회
     @GetMapping
-    public List<GroupBuyCommentResponseDto> getComments(
-                                                         @PathVariable Long groupbuyId) {
-
-        return GroupBuyCommentService.getComments(groupbuyId);
+    public ResponseEntity<List<GroupBuyCommentResponseDto>> getComments(@PathVariable Long groupbuyId) {
+        List<GroupBuyCommentResponseDto> comments = groupBuyCommentService.getComments(groupbuyId);
+        return ResponseEntity.ok(comments);
     }
 
-    //댓글 삭제
+    // 댓글 삭제
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long groupbuyId,
@@ -58,7 +56,14 @@ public class GroupBuyCommentController {
         }
 
         SiteUser user = userDetail.getUser();
-        GroupBuyCommentService.deleteComment(groupbuyId, commentId, user);
+        groupBuyCommentService.deleteComment(groupbuyId, commentId, user);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    // 댓글 개수 조회
+    @GetMapping("/count")
+    public ResponseEntity<Long> countComments(@PathVariable Long groupbuyId) {
+        long count = groupBuyCommentService.countComments(groupbuyId);
+        return ResponseEntity.ok(count);
     }
 }

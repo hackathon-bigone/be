@@ -66,4 +66,7 @@ public class GroupBuyCommentService {
         }
         groupbuyCommentRepository.delete(groupBuyComment);
     }
+    public long countComments(Long groupbuyId) {
+        return groupbuyCommentRepository.countByGroupbuy_GroupbuyId(groupbuyId);
+    }
 }

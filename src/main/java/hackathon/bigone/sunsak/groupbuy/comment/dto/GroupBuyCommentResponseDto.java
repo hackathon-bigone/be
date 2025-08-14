@@ -3,36 +3,33 @@ package hackathon.bigone.sunsak.groupbuy.comment.dto;
 import hackathon.bigone.sunsak.global.util.DisplayDateUtil;
 import hackathon.bigone.sunsak.groupbuy.comment.entity.GroupBuyComment;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
 @Setter
-@NoArgsConstructor
 public class GroupBuyCommentResponseDto {
-    private Long id;
-    private String content;
+
+    private Long commentId;
+    private Long groupbuyId;
     private String authorName;
+    private String content;
     private String createdAt;
     private Long parentId;
     private List<GroupBuyCommentResponseDto> children;
 
-    // 엔티티를 DTO로 변환하는 생성자
-    public GroupBuyCommentResponseDto(GroupBuyComment groupBuyComment) {
-        this.id = groupBuyComment.getId();
-        this.content = groupBuyComment.getContent();
-        this.authorName = (groupBuyComment.getAuthor() != null) ? groupBuyComment.getAuthor().getNickname() : null;
-        this.createdAt = DisplayDateUtil.toDisplay(groupBuyComment.getCreateDate());
-        if (groupBuyComment.getParent() != null) {
-            this.parentId = groupBuyComment.getParent().getId();
-        }
+    public GroupBuyCommentResponseDto() {}
 
-        // 자식 댓글(대댓글) 리스트를 DTO로 변환
-        this.children = groupBuyComment.getChildren().stream()
+    public GroupBuyCommentResponseDto(GroupBuyComment comment) {
+        this.commentId = comment.getId();
+        this.groupbuyId = (comment.getGroupbuy() != null) ? comment.getGroupbuy().getGroupbuyId() : null;
+        this.authorName = (comment.getAuthor() != null) ? comment.getAuthor().getNickname() : null;
+        this.content = comment.getContent();
+        this.createdAt = DisplayDateUtil.toDisplay(comment.getCreateDate());
+        this.parentId = (comment.getParent() != null) ? comment.getParent().getId() : null;
+        this.children = comment.getChildren().stream()
                 .map(GroupBuyCommentResponseDto::new)
                 .collect(Collectors.toList());
     }
