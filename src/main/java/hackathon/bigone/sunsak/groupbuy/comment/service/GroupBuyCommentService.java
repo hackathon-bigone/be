@@ -1,8 +1,11 @@
 package hackathon.bigone.sunsak.groupbuy.comment.service;
 
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
+import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyResponseDto;
+import hackathon.bigone.sunsak.groupbuy.board.entity.GroupBuyScrap;
 import hackathon.bigone.sunsak.groupbuy.board.entity.Groupbuy;
 import hackathon.bigone.sunsak.groupbuy.board.repository.GroupBuyRepository;
+import hackathon.bigone.sunsak.groupbuy.board.repository.GroupBuyScrapRepository;
 import hackathon.bigone.sunsak.groupbuy.comment.dto.GroupBuyCommentRequestDto;
 import hackathon.bigone.sunsak.groupbuy.comment.dto.GroupBuyCommentResponseDto;
 import hackathon.bigone.sunsak.groupbuy.comment.entity.GroupBuyComment;
@@ -20,6 +23,7 @@ import java.util.stream.Collectors;
 public class GroupBuyCommentService {
     private final GroupBuyCommentRepository groupbuyCommentRepository;
     private final GroupBuyRepository groupBuyRepository;
+    private final GroupBuyScrapRepository groupBuyScrapRepository;
 
     @Transactional
     public GroupBuyCommentResponseDto addComment(Long groupbuyId, GroupBuyCommentRequestDto requestDto, SiteUser author) {
@@ -62,5 +66,13 @@ public class GroupBuyCommentService {
             throw new IllegalStateException("이 댓글을 삭제할 권한이 없습니다.");
         }
         groupbuyCommentRepository.delete(groupBuyComment);
+    }
+
+    @Transactional(readOnly = true)
+    public List<GroupbuyResponseDto> getGroupbuyScrapByUser(SiteUser user){
+        return groupBuyScrapRepository.findByUser(user).stream()
+                .map(GroupBuyScrap::getGroupbuy)
+                .map(groupbuy -> new GroupbuyResponseDto(groupbuy, this.getComments(groupbuy.getGroupbuyId())))
+                .collect(Collectors.toList());
     }
 }
