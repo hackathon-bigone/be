@@ -25,7 +25,7 @@ public class GroupBuyCommentResponseDto {
     public GroupBuyCommentResponseDto(GroupBuyComment groupBuyComment) {
         this.id = groupBuyComment.getId();
         this.content = groupBuyComment.getContent();
-        this.authorName = groupBuyComment.getAuthor().getUsername();
+        this.authorName = groupBuyComment.getAuthor().getNickname();
         this.createDate = groupBuyComment.getCreateDate();
         if (groupBuyComment.getParent() != null) {
             this.parentId = groupBuyComment.getParent().getId();
