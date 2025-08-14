@@ -12,5 +12,4 @@ import java.util.List;
 public interface GroupBuyCommentRepository extends JpaRepository<GroupBuyComment, Long> {
     @Query("SELECT c FROM GroupBuyComment c JOIN FETCH c.author WHERE c.groupbuy.groupbuyId = :groupbuyId")
     List<GroupBuyComment> findByGroupbuy_GroupbuyId(@Param("groupbuyId") Long groupbuyId);
-
 }

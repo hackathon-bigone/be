@@ -9,14 +9,14 @@ import hackathon.bigone.sunsak.groupbuy.board.entity.GroupBuyScrap;
 import hackathon.bigone.sunsak.groupbuy.board.enums.GroupBuyStatus;
 import hackathon.bigone.sunsak.groupbuy.board.repository.GroupBuyRepository;
 import hackathon.bigone.sunsak.groupbuy.board.repository.GroupBuyScrapRepository;
-import hackathon.bigone.sunsak.recipe.board.entity.Board;
-import hackathon.bigone.sunsak.recipe.board.entity.RecipeScrap;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GroupBuyService {
     private final GroupBuyRepository groupBuyRepository;
-    private final GroupBuyScrapRepository GroupBuyScrapRepository;
     private final GroupBuyScrapRepository groupBuyScrapRepository;
 
 
@@ -121,21 +120,21 @@ public class GroupBuyService {
     public void toggleScrap(Long groupbuyId, SiteUser user) {
         Groupbuy groupbuy = groupBuyRepository.findById(groupbuyId)
                 .orElseThrow(() -> new EntityNotFoundException("공동구매 게시글을 찾을 수 없습니다."));
-        Optional<GroupBuyScrap> existingScrap = GroupBuyScrapRepository.findByUserAndGroupbuy(user, groupbuy);
+        Optional<GroupBuyScrap> existingScrap = groupBuyScrapRepository.findByUserAndGroupbuy(user, groupbuy);
 
         if (existingScrap.isPresent()) {
-            GroupBuyScrapRepository.delete(existingScrap.get());
+            groupBuyScrapRepository.delete(existingScrap.get());
         } else {
             GroupBuyScrap newScrap = new GroupBuyScrap();
             newScrap.setUser(user);
             newScrap.setGroupbuy(groupbuy);
-            GroupBuyScrapRepository.save(newScrap);
+            groupBuyScrapRepository.save(newScrap);
         }
     }
 
     //검색
-    public List<GroupbuyResponseDto> searchGroupbuysByTitle(String keyword) {
-        List<Groupbuy> groupbuys = groupBuyRepository.findByGroupbuyTitleContaining(keyword);
+    public List<GroupbuyResponseDto> searchGroupbuysByTitle(String keyword, Pageable pageable) { // ✅ Pageable 추가
+        List<Groupbuy> groupbuys = groupBuyRepository.findByGroupbuyTitleContaining(keyword, pageable);
         return groupbuys.stream()
                 .map(GroupbuyResponseDto::new)
                 .collect(Collectors.toList());
