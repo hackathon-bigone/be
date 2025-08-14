@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/groupbuys")
+@RequestMapping("/groupbuys")
 @RequiredArgsConstructor
 public class GroupBuyController {
 
@@ -45,6 +45,7 @@ public class GroupBuyController {
         return ResponseEntity.ok(groupbuy);
     }
 
+    //수정
     @PutMapping("/{groupbuyId}")
     public ResponseEntity<GroupbuyResponseDto> updateGroupbuy(
             @PathVariable Long groupbuyId,
