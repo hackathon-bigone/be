@@ -1,5 +1,6 @@
 package hackathon.bigone.sunsak.home.service;
 
+import hackathon.bigone.sunsak.foodbox.foodbox.dto.FoodBoxImminentResponse;
 import hackathon.bigone.sunsak.foodbox.foodbox.service.FoodBoxQueryService;
 import hackathon.bigone.sunsak.home.dto.HomeFoodDto;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +46,11 @@ public class HomeService {
                     .dLabel(only.getDLabel())
                     .build();
         }
+
+        int minDaysLeft = imminentList.get(0).getDaysLeft(); // 가장 빠른 값 찾기
+        List<FoodBoxImminentResponse> sameDayFoods = imminentList.stream()
+                .filter(f -> f.getDaysLeft() == minDaysLeft)
+                .toList();
 
         var first = imminentList.get(0);
         return HomeFoodDto.builder()
