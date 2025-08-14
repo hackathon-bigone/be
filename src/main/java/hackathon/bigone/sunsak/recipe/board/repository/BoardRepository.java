@@ -1,16 +1,18 @@
-package hackathon.bigone.sunsak.recipe.board.repository;
-
+package hackathon.bigone.sunsak.recipe.board.repository;// BoardRepository.java
 import hackathon.bigone.sunsak.recipe.board.entity.Board;
-import hackathon.bigone.sunsak.recipe.board.entity.Ingredient;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
-    // 단일 키워드로 제목 또는 재료명을 검색하는 쿼리
     @Query("SELECT DISTINCT b FROM Board b JOIN b.ingredients i WHERE b.title LIKE %:keyword% OR i.ingredientName LIKE %:keyword%")
     List<Board> findBySingleKeyword(@Param("keyword") String keyword);
+
+    @Query("SELECT b FROM Board b LEFT JOIN b.likes l GROUP BY b.postId ORDER BY COUNT(l) DESC")
+    List<Board> findAllByPopularity();
 }
