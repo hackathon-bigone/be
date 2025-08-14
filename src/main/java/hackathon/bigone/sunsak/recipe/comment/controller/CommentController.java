@@ -22,8 +22,8 @@ public class CommentController {
     @PostMapping
     public ResponseEntity<CommentResponseDto> addComment(
             @PathVariable Long boardPostId,
-            @RequestBody CommentRequestDto requestDto, // 👈 DTO로 변경
-            @AuthenticationPrincipal CustomUserDetail userDetail // 👈 올바른 인증 방식
+            @RequestBody CommentRequestDto requestDto,
+            @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
         if (userDetail == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -35,7 +35,19 @@ public class CommentController {
 
     @GetMapping
     public List<CommentResponseDto> getComments(@PathVariable Long boardPostId){
-        // 서비스 메서드에서 반환하는 DTO도 CommentResponseDto로 일관성 있게 변경하는 것이 좋습니다.
         return commentService.getComments(boardPostId);
+    }
+
+    @DeleteMapping("/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long boardPostId,
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal CustomUserDetail userDetail
+    ) {
+        if (userDetail == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        commentService.deleteComment(boardPostId, commentId, userDetail.getUser());
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

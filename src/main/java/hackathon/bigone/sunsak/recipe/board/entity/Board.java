@@ -2,6 +2,7 @@ package hackathon.bigone.sunsak.recipe.board.entity;
 
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.recipe.board.enums.RecipeCategory;
+import hackathon.bigone.sunsak.recipe.comment.entity.Comment;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -74,4 +75,7 @@ public class Board {
 
     @CreatedDate
     private LocalDateTime createDate;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
 }

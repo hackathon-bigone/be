@@ -48,9 +48,21 @@ public class CommentService {
 
         List<CommentResponseDto> parentComments = allComments.stream()
                 .filter(comment -> comment.getParent() == null)
-                .map(comment -> new CommentResponseDto(comment))
+                .map(CommentResponseDto::new)
                 .collect(Collectors.toList());
 
         return parentComments;
+    }
+
+    @Transactional
+    public void deleteComment(Long boardPostId, Long commentId, SiteUser currentUser) {
+        boardRepository.findById(boardPostId)
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new EntityNotFoundException("댓글을 찾을 수 없습니다."));
+        if (!comment.getAuthor().equals(currentUser)) {
+            throw new IllegalStateException("이 댓글을 삭제할 권한이 없습니다.");
+        }
+        commentRepository.delete(comment);
     }
 }
