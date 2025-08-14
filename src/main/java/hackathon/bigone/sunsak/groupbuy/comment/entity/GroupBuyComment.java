@@ -27,7 +27,7 @@ public class GroupBuyComment extends BaseTime {
     private Groupbuy groupbuy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id")
+    @JoinColumn(name = "author_id", nullable=false)
     private SiteUser author;
 
     @ManyToOne(fetch = FetchType.LAZY)
