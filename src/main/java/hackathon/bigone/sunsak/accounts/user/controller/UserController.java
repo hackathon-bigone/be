@@ -4,6 +4,7 @@ import hackathon.bigone.sunsak.accounts.user.dto.LoginRequestDto;
 import hackathon.bigone.sunsak.accounts.user.dto.SignupRequestDto;
 import hackathon.bigone.sunsak.accounts.user.dto.SignupResponseDto;
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
+import hackathon.bigone.sunsak.accounts.user.repository.UserRepository;
 import hackathon.bigone.sunsak.accounts.user.service.LogoutService;
 import hackathon.bigone.sunsak.accounts.user.service.SignupService;
 import hackathon.bigone.sunsak.global.security.jwt.JwtTokenProvider;
@@ -15,10 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -30,6 +28,7 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final LogoutService logoutService;
+    private final UserRepository userRepository;
 
     @PostMapping("/signup")
     public ResponseEntity<SignupResponseDto> signup(@RequestBody SignupRequestDto rqDto){
@@ -44,6 +43,14 @@ public class UserController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(rsDto);
+    }
+
+    @GetMapping("/check-username")
+    public ResponseEntity<String> checkUsername(@RequestParam String username) {
+        if (userRepository.existsByUsername(username)) {
+            return ResponseEntity.ok("중복된 아이디입니다.");
+        }
+        return ResponseEntity.ok("사용 가능한 아이디입니다.");
     }
 
     @PostMapping("/login")

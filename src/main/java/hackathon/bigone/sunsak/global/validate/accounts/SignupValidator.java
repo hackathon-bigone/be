@@ -29,10 +29,6 @@ public class SignupValidator {
         if(!username.matches(regex)){
             throw new IllegalArgumentException("영문, 숫자 포함 5~12자를 입력하세요.");
         }
-
-        if(userRepository.existsByUsername(username)){
-            throw new IllegalArgumentException("중복된 아이디입니다.");
-        }
     }
 
     public void passwordValidate(String password, String repeatPw){
