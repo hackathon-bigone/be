@@ -46,11 +46,11 @@ public class UserController {
     }
 
     @GetMapping("/check-username")
-    public ResponseEntity<String> checkUsername(@RequestParam String username) {
+    public ResponseEntity<Map<String, String>>checkUsername(@RequestParam String username) {
         if (userRepository.existsByUsername(username)) {
-            return ResponseEntity.ok("중복된 아이디입니다.");
+            return ResponseEntity.ok(Map.of("message","중복된 아이디입니다."));
         }
-        return ResponseEntity.ok("사용 가능한 아이디입니다.");
+        return ResponseEntity.ok(Map.of("message","사용 가능한 아이디입니다."));
     }
 
     @PostMapping("/login")
