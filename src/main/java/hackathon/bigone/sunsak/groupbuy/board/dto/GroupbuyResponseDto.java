@@ -6,12 +6,13 @@ import hackathon.bigone.sunsak.groupbuy.board.enums.GroupBuyStatus;
 import hackathon.bigone.sunsak.groupbuy.comment.dto.GroupBuyCommentResponseDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
+import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class GroupbuyResponseDto {
     private Long groupbuyId;
@@ -45,18 +46,16 @@ public class GroupbuyResponseDto {
                         .map(GroupBuyLink::getGroupbuylinkUrl)
                         .collect(Collectors.toList()) :
                 List.of();
+
         this.scrapCount = (groupbuy.getScraps() != null) ? groupbuy.getScraps().size() : 0;
 
         this.commentCount = (groupbuy.getGroupBuyComments() != null) ? groupbuy.getGroupBuyComments().size() : 0;
+
         this.comments = (groupbuy.getGroupBuyComments() != null) ?
                 groupbuy.getGroupBuyComments().stream()
+                        .filter(comment -> comment.getParent() == null)
                         .map(GroupBuyCommentResponseDto::new)
                         .collect(Collectors.toList()) :
                 List.of();
-    }
-
-    public GroupbuyResponseDto(Groupbuy groupbuy, List<GroupBuyCommentResponseDto> comments) {
-        this(groupbuy);
-        this.comments = comments;
     }
 }
