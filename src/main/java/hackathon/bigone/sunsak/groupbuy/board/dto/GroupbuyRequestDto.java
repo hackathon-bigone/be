@@ -1,5 +1,6 @@
 package hackathon.bigone.sunsak.groupbuy.board.dto;
 
+import hackathon.bigone.sunsak.groupbuy.board.enums.GroupBuyStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,4 +17,5 @@ public class GroupbuyRequestDto {
     private String mainImageUrl;
     private Integer groupbuyCount;
     private List<String> groupbuyLinkUrls = new ArrayList<>();
+    private GroupBuyStatus status;
 }
