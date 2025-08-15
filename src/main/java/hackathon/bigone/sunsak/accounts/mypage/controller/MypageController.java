@@ -12,8 +12,13 @@ import hackathon.bigone.sunsak.accounts.mypage.service.QnaService;
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
 import hackathon.bigone.sunsak.global.validate.accounts.SignupValidator;
+import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyResponseDto;
+import hackathon.bigone.sunsak.groupbuy.board.service.GroupBuyService;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardResponseDto;
 import hackathon.bigone.sunsak.recipe.board.service.BoardService;
+import hackathon.bigone.sunsak.groupbuy.board.service.GroupBuyService;
+import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyResponseDto;
+import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,6 +38,7 @@ public class MypageController {
     private final SignupValidator signupValidator;
     private final MypageService mypageService;
     private final BoardService boardService; //레시피
+    private final GroupBuyService groupBuyService;
     private final QnaService qnaService;
     private final QuestionRepository questionRepository;
 
@@ -115,8 +121,8 @@ public class MypageController {
                 .orElseGet(() -> ResponseEntity.notFound().build()); // 404
     }
 
-    //스크랩
-    @GetMapping("/scrap")
+    //레시피스크랩
+    @GetMapping("/recipe-scrap")
     public ResponseEntity<List<BoardResponseDto>> getMyScrapBoards(@AuthenticationPrincipal CustomUserDetail userDetail){
         if(userDetail == null){
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -126,6 +132,19 @@ public class MypageController {
         List<BoardResponseDto> scrapBoards = boardService.getScrapBoardsByUser(user);
         return ResponseEntity.ok(scrapBoards);
     }
+
+    @GetMapping("/groupbuy-scraps")
+    public ResponseEntity<List<GroupbuyResponseDto>> getMyScrapGroupbuys(@AuthenticationPrincipal CustomUserDetail userDetail){
+        if(userDetail == null){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        SiteUser user = userDetail.getUser();
+
+        List<GroupbuyResponseDto> scrapGroupbuys = groupBuyService.getScrapGroupbuysByUser(user);
+        return ResponseEntity.ok(scrapGroupbuys);
+    }
+
+
 
     //전체 조회
     @GetMapping("/qna")
