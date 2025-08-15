@@ -1,6 +1,7 @@
 package hackathon.bigone.sunsak.groupbuy.board.service;
 
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
+import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyListResponseDto;
 import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyRequestDto;
 import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyResponseDto;
 import hackathon.bigone.sunsak.groupbuy.board.entity.Groupbuy;
@@ -108,17 +109,6 @@ public class GroupBuyService {
         return new GroupbuyResponseDto(groupbuy);
     }
 
-    //전체 조회 (정렬)
-    public List<GroupbuyResponseDto> findAllGroupbuys(String sort) {
-        // TODO: popular 정렬 로직 필요시 추가
-        Sort sortBy = Sort.by(Sort.Direction.DESC, "createDate");
-
-        List<Groupbuy> groupbuys = groupBuyRepository.findAll(sortBy);
-        return groupbuys.stream()
-                .map(GroupbuyResponseDto::new)
-                .collect(Collectors.toList());
-    }
-
     //공동구매 스크랩 기능
     @Transactional
     public void toggleScrap(Long groupbuyId, SiteUser user) {
@@ -155,8 +145,19 @@ public class GroupBuyService {
                 .collect(Collectors.toList());
     }
 
-    //게시글수
-    public long countAllGroupbuys() {
-        return groupBuyRepository.count();
+    @Transactional(readOnly = true)
+    public GroupbuyListResponseDto findAllGroupbuys(String sort) {
+        Sort sortBy = Sort.by(Sort.Direction.DESC, "createDate");
+
+        List<Groupbuy> groupbuys = groupBuyRepository.findAll(sortBy);
+
+        List<GroupbuyResponseDto> groupbuyDtos = groupbuys.stream()
+                .map(groupbuy -> {
+                    List<GroupBuyCommentResponseDto> comments = groupBuyCommentService.getComments(groupbuy.getGroupbuyId());
+                    return new GroupbuyResponseDto(groupbuy, comments);
+                })
+                .collect(Collectors.toList());
+        long totalCount = groupBuyRepository.count();
+        return new GroupbuyListResponseDto(groupbuyDtos, totalCount);
     }
 }
