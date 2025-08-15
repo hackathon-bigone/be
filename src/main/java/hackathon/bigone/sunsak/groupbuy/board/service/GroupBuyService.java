@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -135,16 +136,17 @@ public class GroupBuyService {
         }
     }
 
+    //마이페이지 스크랩 연동
     @Transactional(readOnly=true)
     public List<GroupbuyResponseDto> getScrapGroupbuysByUser(SiteUser user) {
         return groupBuyScrapRepository.findByUser(user).stream()
                 .map(scrap -> {
                     Groupbuy groupbuy = scrap.getGroupbuy();
-                    List<GroupBuyCommentResponseDto> comments = groupBuyCommentService.getComments(groupbuy.getGroupbuyId());
-                    return new GroupbuyResponseDto(groupbuy, comments);
+                    return new GroupbuyResponseDto(groupbuy, new ArrayList<>());
                 })
                 .collect(Collectors.toList());
     }
+
     //검색
     public List<GroupbuyResponseDto> searchGroupbuysByTitle(String keyword, Pageable pageable) {
         List<Groupbuy> groupbuys = groupBuyRepository.findByGroupbuyTitleContaining(keyword, pageable);
@@ -153,6 +155,7 @@ public class GroupBuyService {
                 .collect(Collectors.toList());
     }
 
+    //게시글수
     public long countAllGroupbuys() {
         return groupBuyRepository.count();
     }

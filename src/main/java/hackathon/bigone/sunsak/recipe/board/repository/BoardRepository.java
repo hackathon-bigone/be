@@ -15,4 +15,9 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 
     @Query("SELECT b FROM Board b LEFT JOIN b.likes l GROUP BY b.postId ORDER BY COUNT(l) DESC")
     List<Board> findAllByPopularity();
+
+    List<Board> findByCategoriesContaining(String category);
+    long countByCategoriesContaining(String category);
+
+    List<Board> findTop5ByOrderByLikesDesc();
 }
