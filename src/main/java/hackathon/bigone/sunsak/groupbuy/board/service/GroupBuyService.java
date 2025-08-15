@@ -9,18 +9,20 @@ import hackathon.bigone.sunsak.groupbuy.board.entity.GroupBuyScrap;
 import hackathon.bigone.sunsak.groupbuy.board.enums.GroupBuyStatus;
 import hackathon.bigone.sunsak.groupbuy.board.repository.GroupBuyRepository;
 import hackathon.bigone.sunsak.groupbuy.board.repository.GroupBuyScrapRepository;
+import hackathon.bigone.sunsak.groupbuy.comment.dto.GroupBuyCommentResponseDto;
+import hackathon.bigone.sunsak.groupbuy.comment.service.GroupBuyCommentService;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 @Slf4j
 @Service
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 public class GroupBuyService {
     private final GroupBuyRepository groupBuyRepository;
     private final GroupBuyScrapRepository groupBuyScrapRepository;
+    private final GroupBuyCommentService groupBuyCommentService;
 
 
     //공동구매 생성 기능
@@ -132,8 +135,18 @@ public class GroupBuyService {
         }
     }
 
+    @Transactional(readOnly=true)
+    public List<GroupbuyResponseDto> getScrapGroupbuysByUser(SiteUser user) {
+        return groupBuyScrapRepository.findByUser(user).stream()
+                .map(scrap -> {
+                    Groupbuy groupbuy = scrap.getGroupbuy();
+                    List<GroupBuyCommentResponseDto> comments = groupBuyCommentService.getComments(groupbuy.getGroupbuyId());
+                    return new GroupbuyResponseDto(groupbuy, comments);
+                })
+                .collect(Collectors.toList());
+    }
     //검색
-    public List<GroupbuyResponseDto> searchGroupbuysByTitle(String keyword, Pageable pageable) { // ✅ Pageable 추가
+    public List<GroupbuyResponseDto> searchGroupbuysByTitle(String keyword, Pageable pageable) {
         List<Groupbuy> groupbuys = groupBuyRepository.findByGroupbuyTitleContaining(keyword, pageable);
         return groupbuys.stream()
                 .map(GroupbuyResponseDto::new)
