@@ -5,17 +5,18 @@ import hackathon.bigone.sunsak.recipe.board.dto.BoardListResponseDto;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardRequestDto;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardResponseDto;
 import hackathon.bigone.sunsak.recipe.board.entity.*;
+import hackathon.bigone.sunsak.recipe.board.enums.RecipeCategory;
 import hackathon.bigone.sunsak.recipe.board.repository.BoardRepository;
 import hackathon.bigone.sunsak.recipe.board.repository.LikeRepository;
 import hackathon.bigone.sunsak.recipe.board.repository.ScrapRepository;
 import hackathon.bigone.sunsak.recipe.comment.dto.CommentResponseDto;
 import hackathon.bigone.sunsak.recipe.comment.service.CommentService;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
-import org.springframework.transaction.annotation.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,7 +30,6 @@ public class BoardService {
     private final LikeRepository likeRepository;
     private final ScrapRepository scrapRepository;
     private final CommentService commentService;
-
 
     @Transactional
     public BoardResponseDto create(BoardRequestDto boardDto, SiteUser author) {
@@ -146,15 +146,30 @@ public class BoardService {
         boardRepository.delete(existingBoard);
     }
 
+    // ✅ 통합된 메서드: 카테고리별 필터링 및 정렬 처리
     @Transactional(readOnly = true)
-    public BoardListResponseDto findAllBoards(String sort) {
-        if ("popular".equalsIgnoreCase(sort)) {
-            return findPopularBoards();
+    public BoardListResponseDto findAllRecipes(String category, String sort) {
+        List<Board> boards;
+        long totalCount;
+
+        Optional<RecipeCategory> recipeCategoryOpt = findCategoryByName(category);
+
+        // 카테고리 필터링 로직
+        if (recipeCategoryOpt.isPresent()) {
+            RecipeCategory recipeCategory = recipeCategoryOpt.get();
+            boards = boardRepository.findByCategoriesContaining(recipeCategory);
+            totalCount = boardRepository.countByCategoriesContaining(recipeCategory);
+        } else {
+            // 필터링이 없거나 잘못된 카테고리인 경우 전체 조회
+            boards = boardRepository.findAll(Sort.by(Sort.Direction.DESC, "createDate"));
+            totalCount = boardRepository.count();
         }
-        // 최신순 정렬
-        Sort sortBy = Sort.by(Sort.Direction.DESC, "createDate");
 
-        List<Board> boards = boardRepository.findAll(sortBy);
+        // 정렬 로직
+        if ("popular".equalsIgnoreCase(sort)) {
+            boards.sort(Comparator.comparingInt(board -> board.getLikes().size()));
+            Collections.reverse(boards);
+        }
 
         List<BoardResponseDto> boardDtos = boards.stream()
                 .map(board -> {
@@ -163,20 +178,6 @@ public class BoardService {
                 })
                 .collect(Collectors.toList());
 
-        long totalCount = boardRepository.count();
-        return new BoardListResponseDto(boardDtos, totalCount);
-    }
-    //인기순 조회
-    @Transactional(readOnly = true)
-    public BoardListResponseDto findPopularBoards() {
-        List<Board> boards = boardRepository.findAllByPopularity();
-        List<BoardResponseDto> boardDtos = boards.stream()
-                .map(board -> {
-                    List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
-                    return new BoardResponseDto(board, comments);
-                })
-                .collect(Collectors.toList());
-        long totalCount = boardRepository.count();
         return new BoardListResponseDto(boardDtos, totalCount);
     }
 
@@ -187,7 +188,6 @@ public class BoardService {
         List<CommentResponseDto> parentComments = commentService.getComments(postId);
         BoardResponseDto responseDto = new BoardResponseDto(board, parentComments);
 
-        // 좋아요 및 댓글 개수 설정
         responseDto.setLikeCount(board.getLikes().size());
         responseDto.setCommentCount(board.getComments().size());
 
@@ -254,27 +254,13 @@ public class BoardService {
                 uniqueBoards.addAll(boardRepository.findBySingleKeyword(keyword));
             }
             searchResults.addAll(uniqueBoards);
-        }
-        else {
+        } else {
             searchResults = boardRepository.findBySingleKeyword(keywords.trim());
         }
 
         return searchResults.stream()
                 .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
                 .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public BoardListResponseDto findBoardsByCategory(String category) {
-        List<Board> boards = boardRepository.findByCategoriesContaining(category);
-        List<BoardResponseDto> boardDtos = boards.stream()
-                .map(board -> {
-                    List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
-                    return new BoardResponseDto(board, comments);
-                })
-                .collect(Collectors.toList());
-        long totalCount = boardRepository.countByCategoriesContaining(category);
-        return new BoardListResponseDto(boardDtos, totalCount);
     }
 
     @Transactional(readOnly = true)
@@ -289,4 +275,23 @@ public class BoardService {
         return new BoardListResponseDto(boardDtos, 5L);
     }
 
+    //한글 카테고리명을 Enum으로 변환하는 헬퍼 메서드
+    private Optional<RecipeCategory> findCategoryByName(String categoryName) {
+        if (categoryName == null || categoryName.isEmpty()) {
+            return Optional.empty();
+        }
+
+        switch (categoryName.toUpperCase()) {
+            case "왕초보":
+                return Optional.of(RecipeCategory.BEGINNER);
+            case "전자레인지/에어프라이어":
+                return Optional.of(RecipeCategory.MICROWAVE_AIRFRYER);
+            case "디저트":
+                return Optional.of(RecipeCategory.DESSERT);
+            case "비건":
+                return Optional.of(RecipeCategory.VEGAN);
+            default:
+                return Optional.empty();
+        }
+    }
 }

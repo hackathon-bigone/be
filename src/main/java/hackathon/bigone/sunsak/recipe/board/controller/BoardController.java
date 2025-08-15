@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 
@@ -29,9 +28,26 @@ public class BoardController {
     private final BoardService boardService;
     private final PresignUploadService presignUploadService;
 
-    //검색
+    //레시피 목록 조회
+    @GetMapping
+    public ResponseEntity<BoardListResponseDto> getAllRecipes(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false, defaultValue = "recent") String sort) {
+
+        BoardListResponseDto response = boardService.findAllRecipes(category, sort);
+        return ResponseEntity.ok(response);
+    }
+
+    //인기 레시피 TOP 5 조회
+    @GetMapping("/top5-popular")
+    public ResponseEntity<BoardListResponseDto> getTop5PopularBoards() {
+        BoardListResponseDto response = boardService.getTop5PopularBoards();
+        return ResponseEntity.ok(response);
+    }
+
+    // 검색
     @GetMapping("/search")
-    public ResponseEntity<List<BoardResponseDto>> searchBoards(@RequestParam String keywords){
+    public ResponseEntity<List<BoardResponseDto>> searchBoards(@RequestParam String keywords) {
         List<BoardResponseDto> results = boardService.findBoardByKeywords(keywords);
         return ResponseEntity.ok(results);
     }
@@ -139,18 +155,4 @@ public class BoardController {
         boardService.toggleScrap(postId, currentUser);
         return ResponseEntity.ok("스크랩 상태가 변경되었습니다.");
     }
-
-    //카테고리별 조회
-    @GetMapping("")
-    public ResponseEntity<BoardListResponseDto> getAllBoards(@RequestParam(required = false) String category) {
-        BoardListResponseDto response;
-        if (category != null && !category.isEmpty()) {
-            response = boardService.findBoardsByCategory(category);
-        } else {
-            response = boardService.findAllBoards("latest");
-        }
-        return ResponseEntity.ok(response);
-    }
-
-
 }

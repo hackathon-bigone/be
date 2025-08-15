@@ -1,5 +1,6 @@
 package hackathon.bigone.sunsak.recipe.board.repository;// BoardRepository.java
 import hackathon.bigone.sunsak.recipe.board.entity.Board;
+import hackathon.bigone.sunsak.recipe.board.enums.RecipeCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,8 +17,8 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     @Query("SELECT b FROM Board b LEFT JOIN b.likes l GROUP BY b.postId ORDER BY COUNT(l) DESC")
     List<Board> findAllByPopularity();
 
-    List<Board> findByCategoriesContaining(String category);
-    long countByCategoriesContaining(String category);
+    List<Board> findByCategoriesContaining(RecipeCategory category);
+    long countByCategoriesContaining(RecipeCategory category);
 
     List<Board> findTop5ByOrderByLikesDesc();
 }
