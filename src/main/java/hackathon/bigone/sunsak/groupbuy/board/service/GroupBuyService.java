@@ -63,6 +63,7 @@ public class GroupBuyService {
     }
 
     //공동구매 수정 기능
+    @Transactional
     public GroupbuyResponseDto update(Long groupbuyId, GroupbuyRequestDto groupdto, SiteUser author) {
         Groupbuy groupbuy = groupBuyRepository.findById(groupbuyId)
                 .orElseThrow(() -> new EntityNotFoundException("공동구매 게시글을 찾을 수 없습니다."));
@@ -75,6 +76,12 @@ public class GroupBuyService {
         groupbuy.setGroupbuyDescription(groupdto.getGroupbuyDescription());
         groupbuy.setGroupbuyCount(groupdto.getGroupbuyCount());
         groupbuy.setMainImageUrl(groupdto.getMainImageUrl());
+
+        // ✅ DTO에 status 정보가 있다면 엔티티에 반영
+        if (groupdto.getStatus() != null) {
+            groupbuy.setStatus(groupdto.getStatus());
+        }
+
         groupbuy.getBuyLinks().clear();
         groupdto.getGroupbuyLinkUrls().stream()
                 .map(url -> {
@@ -85,8 +92,8 @@ public class GroupBuyService {
                 })
                 .forEach(link -> groupbuy.getBuyLinks().add(link));
 
-
-        return new GroupbuyResponseDto(groupbuy);
+        Groupbuy updatedGroupbuy = groupBuyRepository.save(groupbuy);
+        return new GroupbuyResponseDto(updatedGroupbuy);
     }
 
     //공동구매 삭제 기능
