@@ -7,6 +7,7 @@ import hackathon.bigone.sunsak.groupbuy.comment.dto.GroupBuyCommentResponseDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +31,7 @@ public class GroupbuyResponseDto {
     private int commentCount;
     private List<GroupBuyCommentResponseDto> comments;
 
-    public GroupbuyResponseDto(Groupbuy groupbuy) {
+    public GroupbuyResponseDto(Groupbuy groupbuy, List<GroupBuyCommentResponseDto> comments) {
         this.groupbuyId = groupbuy.getGroupbuyId();
         this.groupbuyTitle = groupbuy.getGroupbuyTitle();
         this.groupbuyDescription = groupbuy.getGroupbuyDescription();
@@ -38,24 +39,26 @@ public class GroupbuyResponseDto {
         this.groupbuyCount = groupbuy.getGroupbuyCount();
         this.status = groupbuy.getStatus();
         this.createDate = groupbuy.getCreateDate();
-
         this.authorName = (groupbuy.getAuthor() != null) ? groupbuy.getAuthor().getNickname() : null;
-
         this.groupbuyLinkUrls = (groupbuy.getBuyLinks() != null) ?
                 groupbuy.getBuyLinks().stream()
                         .map(GroupBuyLink::getGroupbuylinkUrl)
                         .collect(Collectors.toList()) :
                 List.of();
-
         this.scrapCount = (groupbuy.getScraps() != null) ? groupbuy.getScraps().size() : 0;
-
         this.commentCount = (groupbuy.getGroupBuyComments() != null) ? groupbuy.getGroupBuyComments().size() : 0;
+        this.comments = comments;
+    }
 
-        this.comments = (groupbuy.getGroupBuyComments() != null) ?
-                groupbuy.getGroupBuyComments().stream()
-                        .filter(comment -> comment.getParent() == null)
-                        .map(GroupBuyCommentResponseDto::new)
-                        .collect(Collectors.toList()) :
-                List.of();
+    public GroupbuyResponseDto(Groupbuy groupbuy) {
+        this(
+                groupbuy,
+                (groupbuy.getGroupBuyComments() != null) ?
+                        groupbuy.getGroupBuyComments().stream()
+                                .filter(comment -> comment.getParent() == null)
+                                .map(GroupBuyCommentResponseDto::new)
+                                .collect(Collectors.toList()) :
+                        List.of()
+        );
     }
 }
