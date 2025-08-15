@@ -133,7 +133,7 @@ public class MypageController {
         return ResponseEntity.ok(scrapBoards);
     }
 
-    @GetMapping("/groupbuy-scraps")
+    @GetMapping("/groupbuy-scrap")
     public ResponseEntity<List<GroupbuyResponseDto>> getMyScrapGroupbuys(@AuthenticationPrincipal CustomUserDetail userDetail){
         if(userDetail == null){
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);

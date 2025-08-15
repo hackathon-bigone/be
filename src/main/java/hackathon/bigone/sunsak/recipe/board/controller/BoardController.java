@@ -5,6 +5,7 @@ import hackathon.bigone.sunsak.global.aws.s3.dto.PresignUploadRequest;
 import hackathon.bigone.sunsak.global.aws.s3.dto.PresignUploadResponse;
 import hackathon.bigone.sunsak.global.aws.s3.service.PresignUploadService;
 import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
+import hackathon.bigone.sunsak.recipe.board.dto.BoardListResponseDto;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardRequestDto;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardResponseDto;
 import hackathon.bigone.sunsak.recipe.board.service.BoardService;
@@ -144,6 +145,13 @@ public class BoardController {
         SiteUser currentUser = userDetail.getUser();
         boardService.toggleScrap(postId, currentUser);
         return ResponseEntity.ok("스크랩 상태가 변경되었습니다.");
+    }
+
+    //카테고리별 조회
+    @GetMapping("/category")
+    public ResponseEntity<BoardListResponseDto> getBoardsByCategory(@RequestParam String category) {
+        BoardListResponseDto response = boardService.findBoardsByCategory(category);
+        return ResponseEntity.ok(response);
     }
 
 

@@ -1,6 +1,7 @@
 package hackathon.bigone.sunsak.recipe.board.service;
 
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
+import hackathon.bigone.sunsak.recipe.board.dto.BoardListResponseDto;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardRequestDto;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardResponseDto;
 import hackathon.bigone.sunsak.recipe.board.entity.*;
@@ -256,4 +257,18 @@ public class BoardService {
                 .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
                 .collect(Collectors.toList());
     }
+
+    @Transactional(readOnly = true)
+    public BoardListResponseDto findBoardsByCategory(String category) {
+        List<Board> boards = boardRepository.findByCategoriesContaining(category);
+        List<BoardResponseDto> boardDtos = boards.stream()
+                .map(board -> {
+                    List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
+                    return new BoardResponseDto(board, comments);
+                })
+                .collect(Collectors.toList());
+        long totalCount = boardRepository.countByCategoriesContaining(category);
+        return new BoardListResponseDto(boardDtos, totalCount);
+    }
+
 }

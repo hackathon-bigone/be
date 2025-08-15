@@ -135,6 +135,7 @@ public class GroupBuyService {
         }
     }
 
+    //마이페이지 스크랩 연동
     @Transactional(readOnly=true)
     public List<GroupbuyResponseDto> getScrapGroupbuysByUser(SiteUser user) {
         return groupBuyScrapRepository.findByUser(user).stream()
@@ -145,6 +146,7 @@ public class GroupBuyService {
                 })
                 .collect(Collectors.toList());
     }
+
     //검색
     public List<GroupbuyResponseDto> searchGroupbuysByTitle(String keyword, Pageable pageable) {
         List<Groupbuy> groupbuys = groupBuyRepository.findByGroupbuyTitleContaining(keyword, pageable);
@@ -153,6 +155,7 @@ public class GroupBuyService {
                 .collect(Collectors.toList());
     }
 
+    //게시글수
     public long countAllGroupbuys() {
         return groupBuyRepository.count();
     }
