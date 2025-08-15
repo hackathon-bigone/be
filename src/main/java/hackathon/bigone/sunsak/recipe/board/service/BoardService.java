@@ -147,31 +147,37 @@ public class BoardService {
     }
 
     @Transactional(readOnly = true)
-    public List<BoardResponseDto> findAllBoards(String sort) {
-        Sort sortBy = Sort.by(Sort.Direction.DESC, "createDate");
-
+    public BoardListResponseDto findAllBoards(String sort) {
         if ("popular".equalsIgnoreCase(sort)) {
             return findPopularBoards();
         }
-
         // 최신순 정렬
-        sortBy = Sort.by(Sort.Direction.DESC, "createDate");
+        Sort sortBy = Sort.by(Sort.Direction.DESC, "createDate");
 
         List<Board> boards = boardRepository.findAll(sortBy);
-        return boards.stream()
-                .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
-                .collect(Collectors.toList());
-    }
-    //인기순 조회
-    @Transactional(readOnly = true)
-    public List<BoardResponseDto> findPopularBoards() {
-        List<Board> boards = boardRepository.findAllByPopularity();
-        return boards.stream()
+
+        List<BoardResponseDto> boardDtos = boards.stream()
                 .map(board -> {
                     List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
                     return new BoardResponseDto(board, comments);
                 })
                 .collect(Collectors.toList());
+
+        long totalCount = boardRepository.count();
+        return new BoardListResponseDto(boardDtos, totalCount);
+    }
+    //인기순 조회
+    @Transactional(readOnly = true)
+    public BoardListResponseDto findPopularBoards() {
+        List<Board> boards = boardRepository.findAllByPopularity();
+        List<BoardResponseDto> boardDtos = boards.stream()
+                .map(board -> {
+                    List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
+                    return new BoardResponseDto(board, comments);
+                })
+                .collect(Collectors.toList());
+        long totalCount = boardRepository.count();
+        return new BoardListResponseDto(boardDtos, totalCount);
     }
 
     @Transactional(readOnly = true)
@@ -230,7 +236,7 @@ public class BoardService {
     public List<BoardResponseDto> getScrapBoardsByUser(SiteUser user) {
         return scrapRepository.findByUser(user).stream()
                 .map(RecipeScrap::getBoard)
-                .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
+                .map(board -> new BoardResponseDto(board, new ArrayList<>()))
                 .collect(Collectors.toList());
     }
 
@@ -269,6 +275,18 @@ public class BoardService {
                 .collect(Collectors.toList());
         long totalCount = boardRepository.countByCategoriesContaining(category);
         return new BoardListResponseDto(boardDtos, totalCount);
+    }
+
+    @Transactional(readOnly = true)
+    public BoardListResponseDto getTop5PopularBoards() {
+        List<Board> boards = boardRepository.findTop5ByOrderByLikesDesc();
+
+        List<BoardResponseDto> boardDtos = boards.stream()
+                .map(board -> {
+                    return new BoardResponseDto(board, new ArrayList<>());
+                })
+                .collect(Collectors.toList());
+        return new BoardListResponseDto(boardDtos, 5L);
     }
 
 }

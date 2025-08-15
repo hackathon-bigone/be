@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -141,8 +142,7 @@ public class GroupBuyService {
         return groupBuyScrapRepository.findByUser(user).stream()
                 .map(scrap -> {
                     Groupbuy groupbuy = scrap.getGroupbuy();
-                    List<GroupBuyCommentResponseDto> comments = groupBuyCommentService.getComments(groupbuy.getGroupbuyId());
-                    return new GroupbuyResponseDto(groupbuy, comments);
+                    return new GroupbuyResponseDto(groupbuy, new ArrayList<>());
                 })
                 .collect(Collectors.toList());
     }

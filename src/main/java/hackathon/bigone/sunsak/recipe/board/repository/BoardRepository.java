@@ -18,4 +18,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 
     List<Board> findByCategoriesContaining(String category);
     long countByCategoriesContaining(String category);
+
+    List<Board> findTop5ByOrderByLikesDesc();
 }

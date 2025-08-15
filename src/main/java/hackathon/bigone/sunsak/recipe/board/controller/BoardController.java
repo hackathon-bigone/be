@@ -35,13 +35,6 @@ public class BoardController {
         List<BoardResponseDto> results = boardService.findBoardByKeywords(keywords);
         return ResponseEntity.ok(results);
     }
-    // 게시글 전체 조회
-    @GetMapping
-    public ResponseEntity<List<BoardResponseDto>> getAllBoards(
-            @RequestParam(defaultValue = "recent") String sort) {
-        List<BoardResponseDto> boards = boardService.findAllBoards(sort);
-        return ResponseEntity.ok(boards);
-    }
 
     // 특정 게시글 조회
     @GetMapping("/{postId}")
@@ -148,9 +141,14 @@ public class BoardController {
     }
 
     //카테고리별 조회
-    @GetMapping("/category")
-    public ResponseEntity<BoardListResponseDto> getBoardsByCategory(@RequestParam String category) {
-        BoardListResponseDto response = boardService.findBoardsByCategory(category);
+    @GetMapping("")
+    public ResponseEntity<BoardListResponseDto> getAllBoards(@RequestParam(required = false) String category) {
+        BoardListResponseDto response;
+        if (category != null && !category.isEmpty()) {
+            response = boardService.findBoardsByCategory(category);
+        } else {
+            response = boardService.findAllBoards("latest");
+        }
         return ResponseEntity.ok(response);
     }
 
