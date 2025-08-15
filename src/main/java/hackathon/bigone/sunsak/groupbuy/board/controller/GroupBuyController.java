@@ -4,6 +4,7 @@ import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.accounts.user.repository.UserRepository;
 import hackathon.bigone.sunsak.global.aws.s3.service.PresignUploadService;
 import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
+import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyListResponseDto;
 import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyRequestDto;
 import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyResponseDto;
 import hackathon.bigone.sunsak.groupbuy.board.service.GroupBuyService;
@@ -15,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
@@ -31,6 +31,7 @@ public class GroupBuyController {
     private final PresignUploadService presignUploadService;
     private final UserRepository userRepository;
 
+    // 게시글 생성
     @PostMapping
     public ResponseEntity<GroupbuyResponseDto> createGroupbuy(
             @RequestBody @Valid GroupbuyRequestDto groupbuyRequestDto,
@@ -45,25 +46,23 @@ public class GroupBuyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdGroupbuy);
     }
 
-
-
     //전체조회
     @GetMapping
-    public ResponseEntity<List<GroupbuyResponseDto>> getAllGroupbuys(
-            @RequestParam(defaultValue = "recent") String sort) {
+    public ResponseEntity<GroupbuyListResponseDto> getAllGroupbuys(
+            @RequestParam(defaultValue = "recent", required = false) String sort) {
 
-        List<GroupbuyResponseDto> groupbuys = groupBuyService.findAllGroupbuys(sort);
-        return ResponseEntity.ok(groupbuys);
+        GroupbuyListResponseDto response = groupBuyService.findAllGroupbuys(sort);
+        return ResponseEntity.ok(response);
     }
 
-    //상세조회
+    // 상세조회
     @GetMapping("/{groupbuyId}")
     public ResponseEntity<GroupbuyResponseDto> getGroupbuy(@PathVariable Long groupbuyId) {
         GroupbuyResponseDto groupbuy = groupBuyService.findGroupbuyById(groupbuyId);
         return ResponseEntity.ok(groupbuy);
     }
 
-    //수정
+    // 수정
     @PutMapping("/{groupbuyId}")
     public ResponseEntity<GroupbuyResponseDto> updateGroupbuy(
             @PathVariable Long groupbuyId,
@@ -78,8 +77,7 @@ public class GroupBuyController {
         return ResponseEntity.ok(updatedGroupbuy);
     }
 
-
-    //삭제
+    // 삭제
     @DeleteMapping("/{groupbuyId}")
     public ResponseEntity<Void> deleteGroupbuy(
             @PathVariable Long groupbuyId,
@@ -92,7 +90,8 @@ public class GroupBuyController {
         groupBuyService.delete(groupbuyId, user);
         return ResponseEntity.noContent().build();
     }
-    //스크랩
+
+    // 스크랩
     @PostMapping("/{groupbuyId}/scrap")
     public ResponseEntity<String> toggleScrap(
             @PathVariable Long groupbuyId,
@@ -106,7 +105,7 @@ public class GroupBuyController {
         return ResponseEntity.ok("스크랩 상태가 변경되었습니다.");
     }
 
-    //검색
+    // 검색
     @GetMapping("/search")
     public ResponseEntity<List<GroupbuyResponseDto>> searchGroupbuys(
             @RequestParam String keyword,
@@ -114,12 +113,5 @@ public class GroupBuyController {
 
         List<GroupbuyResponseDto> groupbuys = groupBuyService.searchGroupbuysByTitle(keyword, pageable);
         return ResponseEntity.ok(groupbuys);
-    }
-
-    // 총 게시물 개수 조회
-    @GetMapping("/count")
-    public ResponseEntity<Long> countGroupbuys() {
-        long count = groupBuyService.countAllGroupbuys();
-        return ResponseEntity.ok(count);
     }
 }
