@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_DIR=/home/ubuntu/sunsak
-JAR_TARGET="$APP_DIR/app.jar"
+JAR_TARGET="/opt/sunsak/app.jar"
 SERVICE=sunsak.service
 HEALTH_URL=${HEALTH_URL:-http://127.0.0.1:8080/home/foodbox}   # 필요시 변경
 
@@ -22,6 +22,11 @@ if [[ -z "${JAR_SRC:-}" ]]; then
   exit 2
 fi
 echo "Picked: $JAR_SRC"
+
+if ! jar tf "$JAR_SRC" | grep -qi 'BOOT-INF/classes/hackathon/bigone/sunsak/.*controller/'; then
+  echo "WARN: controller classes not found in JAR (check packaging)"
+fi
+
 
 echo ">>> Stop service"
 sudo systemctl stop "$SERVICE" || true
