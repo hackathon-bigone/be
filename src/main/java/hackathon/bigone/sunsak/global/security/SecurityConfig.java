@@ -1,6 +1,7 @@
 package hackathon.bigone.sunsak.global.security;
 
 import hackathon.bigone.sunsak.accounts.user.service.LogoutService;
+import hackathon.bigone.sunsak.global.security.jwt.JwtAuthenticationEntryPoint;
 import hackathon.bigone.sunsak.global.security.jwt.JwtAuthenticationFilter;
 import hackathon.bigone.sunsak.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final LogoutService logoutService;
-    //private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -42,6 +43,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers("/user/login", "/user/signup").permitAll() // 1) 로그인, 회원가입은 제외
                                 // .requestMatchers(HttpMethod.POST, "/**").authenticated() // POST는 인증 필요
+                                .requestMatchers(HttpMethod.GET, "/home/**").permitAll() //home 허용
+                                .requestMatchers(HttpMethod.POST, "/user/logout").permitAll()
 
                                 // 2) 영수증 업로드, 식품 저장: POST만 인증 필요 , 목록보기 후에 추가
                                 .requestMatchers(HttpMethod.POST, "/foodbox/receipt/upload").authenticated()
@@ -53,7 +56,7 @@ public class SecurityConfig {
                 .addFilterBefore(
                         new JwtAuthenticationFilter(jwtTokenProvider, logoutService),
                         UsernamePasswordAuthenticationFilter.class)
-                //.exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .build();
     }
 

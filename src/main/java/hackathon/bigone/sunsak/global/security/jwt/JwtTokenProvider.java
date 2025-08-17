@@ -1,8 +1,11 @@
 package hackathon.bigone.sunsak.global.security.jwt;
 
 import hackathon.bigone.sunsak.global.security.jwt.dto.JwtTokenDto;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -60,10 +64,19 @@ public class JwtTokenProvider {
                 .build();
     }
 
+    @Nullable
     public Authentication getAuthentication(String token) {
-        String username = getUserPk(token);
-        var userDetails = userDetailsService.loadUserByUsername(username);
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        try {
+            String username = getUserPk(token);
+            if (username == null || username.isBlank()) return null;
+            var userDetails = userDetailsService.loadUserByUsername(username);
+            return new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities());
+        } catch (UsernameNotFoundException ex) {
+            return null;
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     public String getUserPk(String token) {
@@ -75,29 +88,42 @@ public class JwtTokenProvider {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        } catch (SecurityException | MalformedJwtException | ExpiredJwtException |
-                 UnsupportedJwtException | IllegalArgumentException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
     public long getRemainingExpiration(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(key) // 시크릿 키
-                .parseClaimsJws(token)
-                .getBody();
-
-        return claims.getExpiration().getTime() - System.currentTimeMillis();
-    }
-
-    public String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);  // "Bearer " 이후의 실제 토큰만 잘라서 반환
+        try {
+            var claims = Jwts.parserBuilder().setSigningKey(key).build()
+                    .parseClaimsJws(token).getBody();
+            Date exp = claims.getExpiration();
+            long ttl = (exp == null) ? 0L : (exp.getTime() - System.currentTimeMillis());
+            return Math.max(ttl, 0L);
+        } catch (Exception e) {
+            return 0L;
         }
-
-        return null;  // 없거나 형식 안 맞으면 null 반환
     }
+
+    public String resolveToken(HttpServletRequest req) {
+        String b = req.getHeader("Authorization");
+        if (b == null || !b.startsWith("Bearer ")) return null;
+        String t = b.substring(7).trim();
+        if (t.isEmpty()) return null;
+        if ("null".equalsIgnoreCase(t) || "undefined".equalsIgnoreCase(t)) return null; // ✨
+        return t;
+    }
+
+    public long getRemainingTtlMillis(String token) {
+        try {
+            var claimsJws = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            var exp = claimsJws.getBody().getExpiration();
+            long ttl = exp.getTime() - System.currentTimeMillis();
+            return Math.max(ttl, 0L);
+        } catch (Exception e) {
+            return 0L; // 만료/깨짐 → 0
+        }
+    }
+
 }
 
