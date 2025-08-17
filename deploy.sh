@@ -1,38 +1,53 @@
 #!/bin/bash
-set -euxo pipefail
+set -euo pipefail
+
+APP_DIR=/home/ubuntu/sunsak
+JAR_TARGET="$APP_DIR/app.jar"
+SERVICE=sunsak.service
+HEALTH_URL=${HEALTH_URL:-http://127.0.0.1:8080/home/foodbox}   # 필요시 변경
 
 echo ">>> Build start"
-cd ~/sunsak
+cd "$APP_DIR"
 ./gradlew build -x test --console=plain
 
-echo ">>> Kill existing Java process"
-pkill -f 'java -jar' || true
+echo ">>> Pick artifact"
+if [[ -f build/libs/app.jar ]]; then
+  JAR_SRC=build/libs/app.jar
+else
+  # plain 제외한 첫 번째 jar 선택
+  JAR_SRC=$(ls build/libs/*.jar | grep -v '\-plain\.jar$' | head -n 1 || true)
+fi
+if [[ -z "${JAR_SRC:-}" ]]; then
+  echo "ERROR: JAR not found under build/libs"
+  exit 2
+fi
+echo "Picked: $JAR_SRC"
 
-# (옵션) 혹시 남은 파일 락이 있을 수 있으니 잠깐 대기
-for i in {1..10}; do
-  if sudo lsof /home/ubuntu/sunsak-db.mv.db >/dev/null 2>&1; then
-    echo ">>> Waiting H2 lock release..."
-    sleep 1
-  else
-    break
+echo ">>> Stop service"
+sudo systemctl stop "$SERVICE" || true
+
+echo ">>> Install artifact"
+sudo install -m 644 "$JAR_SRC" "$JAR_TARGET"
+
+echo ">>> Reload unit"
+sudo systemctl daemon-reload
+
+echo ">>> Start service"
+sudo systemctl start "$SERVICE"
+
+echo ">>> Wait for healthy"
+for i in {1..60}; do
+  # 2xx/3xx/4xx는 OK(서버가 응답하면 기동 성공으로 간주), 5xx/실패만 비정상
+  CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || echo 000)
+  if [[ "$CODE" != "000" && "$CODE" -lt 500 ]]; then
+    echo "OK: healthy (HTTP $CODE)"
+    sudo systemctl status "$SERVICE" --no-pager | sed -n '1,8p'
+    exit 0
   fi
+  sleep 1
 done
 
-export SPRING_PROFILES_ACTIVE=prod
-
-echo ">>> Start new jar"
-JAR_NAME=$(ls build/libs/*SNAPSHOT.jar | grep -v plain | head -n 1)
-
-# 환경변수 확인 (로그만)
-echo ">>> Environment variables"
-echo "MYSQL_USER=${MYSQL_USER:-<unset>}"
-echo "MYSQL_PASSWORD=${MYSQL_PASSWORD:-<unset>}"
-echo "REDIS_PASSWORD=${REDIS_PASSWORD:-<unset>}"
-echo "JWT_SECRET=${JWT_SECRET:-<unset>}"
-echo "OCR_SECRET_KEY=${OCR_SECRET_KEY:-<unset>}"
-echo "OCR_API_INVOKE_URL=${OCR_API_INVOKE_URL:-<unset>}"
-
-# 실행: 프로필 인자로도 강제
-nohup java -jar "$JAR_NAME" --spring.profiles.active=prod > ../log.out 2>&1 &
-
-echo ">>> Wai
+echo "ERROR: health check failed (last code: $CODE)"
+sudo systemctl status "$SERVICE" --no-pager
+journalctl -u "$SERVICE" -n 200 --no-pager
+exit 1

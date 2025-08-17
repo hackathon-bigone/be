@@ -31,8 +31,7 @@ spring:
       max-request-size: 25MB
 
   main:
-    lazy-initialization: true # 실행 빠르게 bean 지연 초기화, 대신 에러 체크 생략할 수도 있음
-
+    lazy-initialization: false # true를 false로 변경
 jwt:
   secret: ${JWT_SECRET}
 

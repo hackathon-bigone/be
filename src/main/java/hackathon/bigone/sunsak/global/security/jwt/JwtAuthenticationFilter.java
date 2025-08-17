@@ -21,28 +21,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain)
+                                    FilterChain chain)
             throws ServletException, IOException {
+        try {
+            String token = jwtTokenProvider.resolveToken(request);
 
-        String token = jwtTokenProvider.resolveToken(request);
-
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-
-            // 로그아웃 토큰인지 확인
-            if (logoutService.isBlacklisted(token)) {
-                response.setCharacterEncoding("UTF-8");
-                response.setContentType("application/json;charset=UTF-8");
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("{\"message\": \"로그아웃된 토큰입니다.\"}");
-                return;
+            if (token != null) {
+                // 블랙리스트면 인증 세팅만 하지 말고 그대로 통과 (응답 X, return X)
+                if (logoutService.isBlacklisted(token)) {
+                    SecurityContextHolder.clearContext();
+                } else if (jwtTokenProvider.validateToken(token)) {
+                    Authentication auth = jwtTokenProvider.getAuthentication(token);
+                    if (auth != null) {
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    } else {
+                        SecurityContextHolder.clearContext();
+                    }
+                } else {
+                    SecurityContextHolder.clearContext();
+                }
             }
-
-            Authentication auth = jwtTokenProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(auth);
+        } catch (Exception e) {
+            SecurityContextHolder.clearContext(); // 예외 터져도 500 내지 말고
         }
-
-        filterChain.doFilter(request, response);
+        chain.doFilter(request, response);
     }
-
 }
 
