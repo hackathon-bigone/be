@@ -36,22 +36,23 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+                .headers(h -> h.frameOptions(f -> f.disable()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(
-                        org.springframework.security.config.http.SessionCreationPolicy.STATELESS)) // 세션 사용 안함
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) //CORS
+                        org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/user/login", "/user/signup").permitAll() // 1) 로그인, 회원가입은 제외
-                                // .requestMatchers(HttpMethod.POST, "/**").authenticated() // POST는 인증 필요
-                                .requestMatchers(HttpMethod.GET, "/home/**").permitAll() //home 허용
-                                .requestMatchers(HttpMethod.POST, "/user/logout").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                                // 2) 영수증 업로드, 식품 저장: POST만 인증 필요 , 목록보기 후에 추가
-                                .requestMatchers(HttpMethod.POST, "/foodbox/receipt/upload").authenticated()
-                                .requestMatchers(HttpMethod.POST, "/foodbox/save").authenticated()
+                        // public
+                        .requestMatchers("/user/login", "/user/signup").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/home/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/user/logout").permitAll()
 
-                                .anyRequest().permitAll() // 나머지는 일단 허용
-                                // mypage, 식품 보관함 목록 보기 -> 인증 필요
+                        // 인증 필요
+                        .requestMatchers(HttpMethod.POST, "/foodbox/receipt/upload").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/foodbox/save").authenticated()
+
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(
                         new JwtAuthenticationFilter(jwtTokenProvider, logoutService),
@@ -63,10 +64,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOriginPattern("*"); // 모든 Origin 허용 (배포 시 도메인 제한 가능)
-        config.addAllowedMethod("*"); // GET, POST, PUT, DELETE, OPTIONS
-        config.addAllowedHeader("*"); // 모든 헤더 허용
-        config.setAllowCredentials(true); // 인증정보 허용 (JWT 같은거 보낼 때 필요)
+        config.setAllowedOrigins(java.util.List.of("http://localhost:3000"));
+
+        config.setAllowedMethods(java.util.List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+        config.setAllowedHeaders(java.util.List.of("Authorization","Content-Type","Accept","X-Requested-With"));
+        // JWT를 헤더로 내려보내면 노출 헤더에 추가
+        config.setExposedHeaders(java.util.List.of("Authorization"));
+        config.setAllowCredentials(true); // 쿠키/자격증명 허용 시 필수
+        config.setMaxAge(3600L);          // 프리플라이트 캐시
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
