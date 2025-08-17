@@ -18,7 +18,6 @@ jobs:
 
     steps:
       - name: Check out code
-        # 1) 소스 체크아웃
         uses: actions/checkout@v4
 
       - name: Setup JDK 21
@@ -36,19 +35,16 @@ jobs:
       - name: List build outputs
         run: ls -alh build/libs
 
-      # 2) 업로드할 산출물 하나 선택 (plain 제외)
       - name: Resolve artifact
         id: artifact
         shell: bash
         run: |
           set -euo pipefail
           ART="$(ls -t build/libs/*.jar | grep -v -- '-plain\.jar' | head -n1)"
-          test -n "$ART"
           echo "path=$ART" >> "$GITHUB_OUTPUT"
           echo "file=$(basename "$ART")" >> "$GITHUB_OUTPUT"
           echo "Selected: $ART"
 
-      # 3) 원격 폴더 준비 + 과거 잔여물 제거
       - name: Prepare remote dir
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -57,12 +53,9 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
             set -euxo pipefail
-            mkdir -p /home/ubuntu/sunsak/build/libs
-            # 업로드 전용 폴더 초기화
-            rm -rf /home/ubuntu/sunsak/build/libs/incoming
             mkdir -p /home/ubuntu/sunsak/build/libs/incoming
+            sudo mkdir -p /opt/sunsak
 
-      # 4) 산출물 업로드 (항상 '디렉터리'를 타깃으로!)
       - name: Copy jar to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -70,12 +63,11 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           source: "${{ steps.artifact.outputs.path }}"
-          target: "/home/ubuntu/sunsak/build/libs/incoming/"  # 업로드 전용 폴더
+          target: "/home/ubuntu/sunsak/build/libs/incoming/"
           overwrite: true
-          strip_components: 2  # 소스가 build/libs/xxx.jar라면 깔끔하게 파일만 떨어짐
+          strip_components: 2
 
-      # 5) 업로드된 파일을 app.jar로 교체 → 재시작
-      - name: Replace app.jar & restart
+      - name: Replace /opt/sunsak/app.jar & restart & healthcheck
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -85,30 +77,36 @@ jobs:
             set -euxo pipefail
             cd /home/ubuntu/sunsak/build/libs
 
-            echo ">>> After SCP"
-            ls -alh
             echo ">>> Incoming list"
             ls -alh incoming || true
 
-            # incoming 폴더에서 최신 JAR 하나 선택 (plain 제외 우선)
+            # 최신 JAR(plain 제외 우선)
             CAND=$(find incoming -type f -name "*.jar" ! -name "*-plain.jar" -printf "%T@ %p\n" \
               | sort -nr | head -n1 | awk '{print $2}')
             if [ -z "$CAND" ]; then
               CAND=$(find incoming -type f -name "*.jar" -printf "%T@ %p\n" \
                 | sort -nr | head -n1 | awk '{print $2}')
             fi
+            test -n "$CAND"
 
-            if [ -n "$CAND" ]; then
-              echo ">>> New jar found: $CAND"
-              mv -f "$CAND" ./app.jar
-            else
-              echo ">>> No new jar uploaded. Keep current app.jar."
-            fi
-
-            # 깔끔하게 정리
+            echo ">>> Install to /opt/sunsak/app.jar"
+            sudo install -m 644 "$CAND" /opt/sunsak/app.jar
             rm -rf incoming
 
             sudo systemctl daemon-reload
-            sudo systemctl restart sunsak
-            sudo systemctl --no-pager --full status sunsak || true
-            journalctl -u sunsak -n 120 --no-pager || true
+            sudo systemctl restart sunsak.service
+            sudo systemctl --no-pager --full status sunsak.service || true
+
+            echo ">>> Health check"
+            set +e
+            for i in $(seq 1 60); do
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/home/foodbox || echo 000)
+              if [ "$CODE" != "000" ] && [ "$CODE" -lt 500 ]; then
+                echo "OK: healthy (HTTP $CODE)"
+                exit 0
+              fi
+              sleep 1
+            done
+            echo "ERROR: health check failed"
+            journalctl -u sunsak.service -n 200 --no-pager
+            exit 1
