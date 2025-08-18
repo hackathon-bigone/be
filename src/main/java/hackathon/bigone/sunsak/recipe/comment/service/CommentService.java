@@ -1,10 +1,12 @@
 package hackathon.bigone.sunsak.recipe.comment.service;
 
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
+import hackathon.bigone.sunsak.accounts.user.service.SignupService;
 import hackathon.bigone.sunsak.recipe.board.entity.Board;
 import hackathon.bigone.sunsak.recipe.board.repository.BoardRepository;
 import hackathon.bigone.sunsak.recipe.comment.dto.CommentRequestDto;
 import hackathon.bigone.sunsak.recipe.comment.dto.CommentResponseDto;
+import hackathon.bigone.sunsak.recipe.comment.dto.MypageDto;
 import hackathon.bigone.sunsak.recipe.comment.entity.Comment;
 import hackathon.bigone.sunsak.recipe.comment.repository.CommentRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -64,5 +66,18 @@ public class CommentService {
             throw new IllegalStateException("이 댓글을 삭제할 권한이 없습니다.");
         }
         commentRepository.delete(comment);
+    }
+
+    public List<MypageDto> getCommentsByUserId(Long userId) {
+        // userId를 바로 사용하여 댓글을 조회
+        List<Comment> comments = commentRepository.findByAuthor_Id(userId);
+
+        return comments.stream()
+                .map(MypageDto::new)
+                .collect(Collectors.toList());
+    }
+
+    public long getCommentCount(Long authorId) {
+        return commentRepository.countByAuthor_Id(authorId);
     }
 }
