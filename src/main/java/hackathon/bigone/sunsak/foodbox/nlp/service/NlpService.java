@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.text.Normalizer;
 import java.util.*;
 
 @Service
@@ -24,6 +25,14 @@ public class NlpService {
 
     // user_dict 단어 Set (메모리)
     private final Set<String> userDictWords = new HashSet<>();
+
+    private static String sanitize(String s) {
+        if (s == null) return "";
+        s = Normalizer.normalize(s, Normalizer.Form.NFKC);   // 폭/기호 정규화
+        s = s.replaceAll("[^가-힣0-9a-zA-Z()\\s]", " "); //전처리
+        s = s.replaceAll("\\s+", " ").trim(); //공백 압축
+        return s;
+    }
 
     @PostConstruct
     public void initKomoran() {
@@ -65,8 +74,7 @@ public class NlpService {
     /**
      * OCR 텍스트 목록을 받아서
      * - user_dict로 인식된 토큰 그룹
-     * - user_dict에 없던 명사 그룹
-     * 으로 분류하고, 수량 합산해서 반환
+     * - user_dict에 없던 명사 그룹으로 분류하고, 수량 합산해서 반환
      */
     public ClassifiedTokens classifyByUserDict(List<OcrExtractedItem> rawItems) {
         Map<String, Integer> userDictGroup = new LinkedHashMap<>();
@@ -79,7 +87,8 @@ public class NlpService {
         for (OcrExtractedItem item : rawItems) {
             if (item == null || item.getName() == null || item.getName().isBlank()) continue;
 
-            KomoranResult res = komoran.analyze(item.getName());
+            String cleaned = sanitize(item.getName());
+            KomoranResult res = komoran.analyze(cleaned);
             List<Token> tokens = res.getTokenList();
             int qty = Math.max(1, item.getQuantity());
 
@@ -125,7 +134,8 @@ public class NlpService {
         for (OcrExtractedItem item : rawItems) {
             if (item == null || item.getName() == null || item.getName().isBlank()) continue;
 
-            KomoranResult res = komoran.analyze(item.getName());
+            String cleaned = sanitize(item.getName());
+            KomoranResult res = komoran.analyze(cleaned);
             List<String> nouns = res.getNouns();
             int qty = Math.max(1, item.getQuantity());
 
