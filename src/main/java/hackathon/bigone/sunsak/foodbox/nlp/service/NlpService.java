@@ -26,6 +26,12 @@ public class NlpService {
     // user_dict 단어 Set (메모리)
     private final Set<String> userDictWords = new HashSet<>();
 
+    private static final int MIN_NOUN_LEN = 2; //2글자 이상
+
+    private static boolean longEnough(String s) {
+        return s != null && s.codePointCount(0, s.length()) >= MIN_NOUN_LEN;
+    }
+
     private static String sanitize(String s) {
         if (s == null) return "";
         s = Normalizer.normalize(s, Normalizer.Form.NFKC);   // 폭/기호 정규화
@@ -92,10 +98,11 @@ public class NlpService {
             List<Token> tokens = res.getTokenList();
             int qty = Math.max(1, item.getQuantity());
 
-            // 1) user_dict 토큰 커버 범위 수집
+            // user_dict 토큰 커버 범위 수집
             List<int[]> covered = new ArrayList<>();
             for (Token t : tokens) {
                 String morph = t.getMorph();
+                if (!longEnough(morph)) continue;
                 if (morph == null || morph.isBlank()) continue;
                 if (userDictWords.contains(morph)) {
                     userDictGroup.merge(morph, qty, Integer::sum);
@@ -103,13 +110,14 @@ public class NlpService {
                 }
             }
 
-            // 2) 명사(NNG/NNP) 중 user_dict 범위에 걸치지 않는 것만 자유명사로
+            // 명사  중 user_dict 범위에 걸치지 않는 것만 자유명사로
             outer:
             for (Token t : tokens) {
                 String pos = t.getPos();
                 if (pos == null || !(pos.startsWith("NNG") || pos.startsWith("NNP"))) continue;
 
                 String noun = t.getMorph();
+                if (!longEnough(noun)) continue;
                 if (noun == null || noun.isBlank()) continue;
                 if (userDictWords.contains(noun)) continue; // user_dict와 일치하면 이미 처리됨
 
@@ -140,6 +148,7 @@ public class NlpService {
             int qty = Math.max(1, item.getQuantity());
 
             for (String noun : nouns) {
+                if (!longEnough(noun)) continue;
                 if (noun == null || noun.isBlank()) continue;
                 result.add(new OcrExtractedItem(noun, qty));
             }
