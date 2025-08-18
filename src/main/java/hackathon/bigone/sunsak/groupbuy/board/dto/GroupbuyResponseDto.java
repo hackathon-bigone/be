@@ -1,5 +1,6 @@
 package hackathon.bigone.sunsak.groupbuy.board.dto;
 
+import hackathon.bigone.sunsak.global.util.DisplayDateUtil;
 import hackathon.bigone.sunsak.groupbuy.board.entity.Groupbuy;
 import hackathon.bigone.sunsak.groupbuy.board.entity.GroupBuyLink;
 import hackathon.bigone.sunsak.groupbuy.board.enums.GroupBuyStatus;
@@ -22,7 +23,7 @@ public class GroupbuyResponseDto {
     private String mainImageUrl;
     private int groupbuyCount;
     private GroupBuyStatus status;
-    private LocalDateTime createDate;
+    private String createDate;
     private String authorName;
     private int authorPostCount;
 
@@ -39,7 +40,7 @@ public class GroupbuyResponseDto {
         this.mainImageUrl = groupbuy.getMainImageUrl();
         this.groupbuyCount = groupbuy.getGroupbuyCount();
         this.status = groupbuy.getStatus();
-        this.createDate = groupbuy.getCreateDate();
+        this.createDate = DisplayDateUtil.toDisplay(groupbuy.getCreateDate());
         this.authorName = (groupbuy.getAuthor() != null) ? groupbuy.getAuthor().getNickname() : null;
         this.groupbuyLinkUrls = (groupbuy.getBuyLinks() != null) ?
                 groupbuy.getBuyLinks().stream()
