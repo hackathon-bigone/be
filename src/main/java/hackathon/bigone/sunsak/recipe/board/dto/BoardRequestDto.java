@@ -11,7 +11,7 @@ import java.util.List;
 @Setter
 public class BoardRequestDto {
     private String title;
-    private String cookingTime;
+    private int cookingTime;
     private MultipartFile mainImageFile;
     private String mainImageUrl;
     private List<StepRequestDto> steps;

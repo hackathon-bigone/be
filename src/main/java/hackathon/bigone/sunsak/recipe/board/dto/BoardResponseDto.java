@@ -1,6 +1,5 @@
 package hackathon.bigone.sunsak.recipe.board.dto;
 
-import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import hackathon.bigone.sunsak.global.util.DisplayDateUtil;
 import hackathon.bigone.sunsak.recipe.board.entity.Board;
 import hackathon.bigone.sunsak.recipe.board.enums.RecipeCategory;
@@ -32,7 +31,7 @@ public class BoardResponseDto {
     public BoardResponseDto(Board board, List<CommentResponseDto> comments) {
         this.postId = board.getPostId();
         this.title = board.getTitle();
-        this.cookingTime = board.getCookingTime();
+        this.cookingTime = convertCookingTime(board.getCookingTime());
         this.mainImageUrl = board.getMainImageUrl();
         this.authorName = board.getAuthor() != null
                 ? board.getAuthor().getNickname() // 🔹 nickname 사용
@@ -59,10 +58,24 @@ public class BoardResponseDto {
         this.commentCount = board.getComments().size();
     }
 
+    public String convertCookingTime(int totalMinutes){
+        if(totalMinutes < 60){
+            return totalMinutes + "분";
+        }
+        int hours = totalMinutes / 60;
+        int minutes = totalMinutes % 60;
+
+        if (minutes == 0){
+            return hours + "시간";
+        }
+
+        return hours +"시간 "+ minutes +"분";
+    }
+
     public BoardResponseDto(Board board) {
         this.postId = board.getPostId();
         this.title = board.getTitle();
-        this.cookingTime = board.getCookingTime();
+        this.cookingTime = convertCookingTime(board.getCookingTime());
         this.mainImageUrl = board.getMainImageUrl();
         this.authorName = board.getAuthor() != null
                 ? board.getAuthor().getNickname() // 🔹 nickname 사용
