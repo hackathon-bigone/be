@@ -24,6 +24,7 @@ public class GroupbuyResponseDto {
     private GroupBuyStatus status;
     private LocalDateTime createDate;
     private String authorName;
+    private int authorPostCount;
 
     private List<String> groupbuyLinkUrls;
 
@@ -31,7 +32,7 @@ public class GroupbuyResponseDto {
     private int commentCount;
     private List<GroupBuyCommentResponseDto> comments;
 
-    public GroupbuyResponseDto(Groupbuy groupbuy, List<GroupBuyCommentResponseDto> comments) {
+    public GroupbuyResponseDto(Groupbuy groupbuy, List<GroupBuyCommentResponseDto> comments, int authorPostCount) {
         this.groupbuyId = groupbuy.getGroupbuyId();
         this.groupbuyTitle = groupbuy.getGroupbuyTitle();
         this.groupbuyDescription = groupbuy.getGroupbuyDescription();
@@ -48,6 +49,7 @@ public class GroupbuyResponseDto {
         this.scrapCount = (groupbuy.getScraps() != null) ? groupbuy.getScraps().size() : 0;
         this.commentCount = (groupbuy.getGroupBuyComments() != null) ? groupbuy.getGroupBuyComments().size() : 0;
         this.comments = comments;
+        this.authorPostCount = authorPostCount;
     }
 
     public GroupbuyResponseDto(Groupbuy groupbuy) {
@@ -58,7 +60,9 @@ public class GroupbuyResponseDto {
                                 .filter(comment -> comment.getParent() == null)
                                 .map(GroupBuyCommentResponseDto::new)
                                 .collect(Collectors.toList()) :
-                        List.of()
+                        List.of(),
+                0
         );
     }
+
 }

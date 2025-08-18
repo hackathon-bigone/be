@@ -11,6 +11,7 @@ import hackathon.bigone.sunsak.groupbuy.board.enums.GroupBuyStatus;
 import hackathon.bigone.sunsak.groupbuy.board.repository.GroupBuyRepository;
 import hackathon.bigone.sunsak.groupbuy.board.repository.GroupBuyScrapRepository;
 import hackathon.bigone.sunsak.groupbuy.comment.dto.GroupBuyCommentResponseDto;
+import hackathon.bigone.sunsak.groupbuy.comment.repository.GroupBuyCommentRepository;
 import hackathon.bigone.sunsak.groupbuy.comment.service.GroupBuyCommentService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,7 @@ public class GroupBuyService {
     private final GroupBuyRepository groupBuyRepository;
     private final GroupBuyScrapRepository groupBuyScrapRepository;
     private final GroupBuyCommentService groupBuyCommentService;
+    private final GroupBuyCommentRepository groupBuyCommentRepository;
 
 
     //공동구매 생성 기능
@@ -118,7 +120,17 @@ public class GroupBuyService {
     public GroupbuyResponseDto findGroupbuyById(Long groupbuyId) {
         Groupbuy groupbuy = groupBuyRepository.findById(groupbuyId)
                 .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
-        return new GroupbuyResponseDto(groupbuy);
+
+        Long authorId= groupbuy.getAuthor().getId();
+        long authorPostCount = groupBuyRepository.countByAuthor_Id(authorId);
+
+        // 첫 번째 변수 선언을 제거하고, 기존 코드와 합쳐서 올바르게 수정합니다.
+        List<GroupBuyCommentResponseDto> comments = groupBuyCommentRepository.findByGroupbuy_GroupbuyId(groupbuyId).stream()
+                .filter(comment -> comment.getParent() == null)
+                .map(GroupBuyCommentResponseDto::new)
+                .collect(Collectors.toList());
+
+        return new GroupbuyResponseDto(groupbuy, comments, (int) authorPostCount);
     }
 
     //공동구매 스크랩 기능
@@ -144,7 +156,8 @@ public class GroupBuyService {
         return groupBuyScrapRepository.findByUser(user).stream()
                 .map(scrap -> {
                     Groupbuy groupbuy = scrap.getGroupbuy();
-                    return new GroupbuyResponseDto(groupbuy, new ArrayList<>());
+                    // Groupbuy 엔티티만 받는 생성자 호출
+                    return new GroupbuyResponseDto(groupbuy);
                 })
                 .collect(Collectors.toList());
     }
@@ -157,6 +170,7 @@ public class GroupBuyService {
                 .collect(Collectors.toList());
     }
 
+    //모든 게시믈 조회
     @Transactional(readOnly = true)
     public GroupbuyListResponseDto findAllGroupbuys(String sort) {
         Sort sortBy = Sort.by(Sort.Direction.DESC, "createDate");
@@ -165,8 +179,7 @@ public class GroupBuyService {
 
         List<GroupbuyResponseDto> groupbuyDtos = groupbuys.stream()
                 .map(groupbuy -> {
-                    List<GroupBuyCommentResponseDto> comments = groupBuyCommentService.getComments(groupbuy.getGroupbuyId());
-                    return new GroupbuyResponseDto(groupbuy, comments);
+                    return new GroupbuyResponseDto(groupbuy, new ArrayList<>(), 0);
                 })
                 .collect(Collectors.toList());
         long totalCount = groupBuyRepository.count();
