@@ -28,6 +28,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -196,5 +197,46 @@ public class MypageController {
         }
         Long userId = userDetail.getId();
         return ResponseEntity.ok(mypageService.createReport(userId, dto));
+    }
+
+    // 내가 작성한 레시피 게시글 리스트
+    @GetMapping("/my-boards")
+    public ResponseEntity<List<BoardResponseDto>> getMyBoards(@AuthenticationPrincipal CustomUserDetail userDetail) {
+        if (userDetail == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Long userId = userDetail.getId();
+        List<BoardResponseDto> myBoards = boardService.getMyBoards(userId);
+        return ResponseEntity.ok(myBoards);
+    }
+
+    // 내가 작성한 공동구매 게시글 리스트
+    @GetMapping("/my-groupbuys")
+    public ResponseEntity<List<GroupbuyResponseDto>> getMyGroupbuys(@AuthenticationPrincipal CustomUserDetail userDetail) {
+        if (userDetail == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Long userId = userDetail.getId();
+        List<GroupbuyResponseDto> myGroupbuys = groupBuyService.getMyGroupbuys(userId);
+        return ResponseEntity.ok(myGroupbuys);
+    }
+
+    @GetMapping("/my-posts/count")
+    public ResponseEntity<Map<String, Long>> getMyPostsCount(@AuthenticationPrincipal CustomUserDetail userDetail) {
+        if (userDetail == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Long userId = userDetail.getId();
+
+        // 각 서비스의 메서드를 호출하여 개수를 가져옴
+        long recipePostCount = boardService.countMyBoards(userId);
+        long groupBuyPostCount = groupBuyService.countMyGroupbuys(userId);
+
+        Map<String, Long> response = new HashMap<>();
+        response.put("recipePostCount", recipePostCount);
+        response.put("groupBuyPostCount", groupBuyPostCount);
+        response.put("totalPosts", recipePostCount + groupBuyPostCount);
+
+        return ResponseEntity.ok(response);
     }
 }

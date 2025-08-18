@@ -58,4 +58,34 @@ public class BoardResponseDto {
         this.likeCount = board.getLikes().size();
         this.commentCount = board.getComments().size();
     }
+
+    public BoardResponseDto(Board board) {
+        this.postId = board.getPostId();
+        this.title = board.getTitle();
+        this.cookingTime = board.getCookingTime();
+        this.mainImageUrl = board.getMainImageUrl();
+        this.authorName = board.getAuthor() != null
+                ? board.getAuthor().getNickname() // 🔹 nickname 사용
+                : null;
+
+        this.steps = board.getSteps().stream()
+                .map(StepResponseDto::new)
+                .collect(Collectors.toList());
+
+        this.recipeLinks = board.getRecipeLink().stream()
+                .map(RecipeLinkResponseDto::new)
+                .collect(Collectors.toList());
+
+        this.ingredients = board.getIngredients().stream()
+                .map(IngredientResponseDto::new)
+                .collect(Collectors.toList());
+
+        this.categories = board.getCategories();
+        this.recipeDescription = board.getRecipeDescription();
+        this.createdAt = DisplayDateUtil.toDisplay(board.getCreateDate());
+
+
+        this.likeCount = board.getLikes().size();
+        this.commentCount = board.getComments().size();
+    }
 }

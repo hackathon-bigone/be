@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface GroupBuyRepository extends JpaRepository<Groupbuy, Long> {
     List<Groupbuy> findByGroupbuyTitleContaining(String keyword, Pageable pageable);
+    List<Groupbuy> findByAuthor_Id(Long author);
+    long countByAuthor_Id(Long author);
 }
