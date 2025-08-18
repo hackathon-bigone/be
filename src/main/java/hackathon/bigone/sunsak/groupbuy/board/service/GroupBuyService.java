@@ -40,13 +40,14 @@ public class GroupBuyService {
     //공동구매 생성 기능
     @Transactional
     public GroupbuyResponseDto create(GroupbuyRequestDto groupdto, SiteUser author) {
-        List<GroupBuyLink> links = groupdto.getGroupbuyLinkUrls().stream()
-                .map(url -> {
-                    GroupBuyLink link = new GroupBuyLink();
-                    link.setGroupbuylinkUrl(url);
-                    return link;
-                })
-                .collect(Collectors.toList());
+        List<GroupBuyLink> links = (groupdto.getGroupbuyLinkUrls() != null) ?
+                groupdto.getGroupbuyLinkUrls().stream()
+                        .map(url -> {
+                            GroupBuyLink link = new GroupBuyLink();
+                            link.setGroupbuylinkUrl(url);
+                            return link;
+                        })
+                        .collect(Collectors.toList()) : new ArrayList<>();
 
         Groupbuy newGroupbuy = new Groupbuy();
         newGroupbuy.setGroupbuyTitle(groupdto.getGroupbuyTitle());
@@ -79,7 +80,6 @@ public class GroupBuyService {
         groupbuy.setGroupbuyCount(groupdto.getGroupbuyCount());
         groupbuy.setMainImageUrl(groupdto.getMainImageUrl());
 
-        // ✅ DTO에 status 정보가 있다면 엔티티에 반영
         if (groupdto.getStatus() != null) {
             groupbuy.setStatus(groupdto.getStatus());
         }

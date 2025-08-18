@@ -30,7 +30,7 @@ public class Board {
 
     // 조리시간
     @Column(nullable=false, length = 100)
-    private String cookingTime;
+    private int cookingTime;
 
     // 대표사진 URL
     @Column(nullable = true, length = 500)
