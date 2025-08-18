@@ -93,7 +93,7 @@ public class S3Uploader {
     // 조회용 프리사인 URL (GET)  S3 객체 읽기용
     public URL presignedGetUrl(String key, Duration ttl) {
         key = normalizeKey(key);
-        Duration e = clampTtl(ttl, Duration.ofMinutes(15));
+        Duration e = clampTtl(ttl, Duration.ofMinutes(360));
         Date exp = new Date(System.currentTimeMillis() + e.toMillis());
 
         GeneratePresignedUrlRequest req = new GeneratePresignedUrlRequest(bucket, key)
