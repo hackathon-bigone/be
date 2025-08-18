@@ -143,7 +143,6 @@
 옥수수	NNP
 조	NNP
 트리티케일	NNP
-피	NNP
 호밀	NNP
 감자국수	NNP
 감자당면	NNP
@@ -278,7 +277,6 @@
 깐땅콩	NNP
 땅콩	NNP
 땅콩순	NNP
-피땅콩	NNP
 라임	NNP
 레몬	NNP
 리치	NNP
@@ -316,7 +314,6 @@
 단무지무	NNP
 달랑무	NNP
 동자무	NNP
-무	NNP
 무말랭이	NNP
 무솎음	NNP
 봄무	NNP
