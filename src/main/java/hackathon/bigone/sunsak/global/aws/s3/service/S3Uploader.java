@@ -23,6 +23,7 @@ public class S3Uploader {
 
     private final AmazonS3 s3; // S3Config에서 주입
     private String bucket = "sunsak-bucket-1"; //bucket 이름
+    private static final Duration MAX_TTL = Duration.ofDays(7);
 
     //S3에 저장할 파일 경로를 만드는 것
     //key 생성: {prefix}/{uuid}[.ext]
@@ -78,24 +79,39 @@ public class S3Uploader {
         } while (contToken != null);
     }
 
+    private String normalizeKey(String key) {
+        if (key == null || key.isBlank()) throw new IllegalArgumentException("key blank");
+        return key.startsWith("/") ? key.substring(1) : key;
+    }
+
+    private Duration clampTtl(Duration ttl, Duration def) {
+        Duration e = (ttl == null || ttl.isZero() || ttl.isNegative()) ? def : ttl;
+        return e.compareTo(MAX_TTL) > 0 ? MAX_TTL : e;
+    }
+
+
     // 조회용 프리사인 URL (GET)  S3 객체 읽기용
     public URL presignedGetUrl(String key, Duration ttl) {
-        Date exp = new Date(System.currentTimeMillis() + ttl.toMillis());
+        key = normalizeKey(key);
+        Duration e = clampTtl(ttl, Duration.ofMinutes(15));
+        Date exp = new Date(System.currentTimeMillis() + e.toMillis());
+
         GeneratePresignedUrlRequest req = new GeneratePresignedUrlRequest(bucket, key)
-                .withMethod(HttpMethod.GET)
-                .withExpiration(exp);
+                        .withMethod(HttpMethod.GET)
+                        .withExpiration(exp);
+
         return s3.generatePresignedUrl(req);
     }
 
-    /** 업로드용 프리사인 URL (PUT) — 클라이언트 직접 업로드 시 사용 */
+    // 업로드용 프리사인 URL (PUT) — 클라이언트 직접 업로드 시 사용
     public URL presignedPutUrl(String key, Duration ttl, @Nullable String contentType) {
         Date exp = new Date(System.currentTimeMillis() + ttl.toMillis());
         GeneratePresignedUrlRequest req = new GeneratePresignedUrlRequest(bucket, key)
                 .withMethod(HttpMethod.PUT)
                 .withExpiration(exp);
-        if (contentType != null) {
+        if (contentType != null && !contentType.isBlank()) {
             // PUT 프리사인 사용 시, 클라이언트가 같은 Content-Type 헤더로 업로드해야 함
-            req.addRequestParameter("Content-Type", contentType);
+            req.setContentType(contentType);
         }
         return s3.generatePresignedUrl(req);
     }

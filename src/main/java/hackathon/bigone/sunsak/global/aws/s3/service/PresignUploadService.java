@@ -61,5 +61,22 @@ public class PresignUploadService {
         }
         return result;
     }
+
+    public String createGetUrl(String key, Duration ttl) {
+        if (key == null || key.isBlank()) {
+            throw new IllegalArgumentException("key must not be blank");
+        }
+        if (key.charAt(0) == '/') key = key.substring(1);
+
+        // TTL 기본값 + 7일 클램프
+        Duration effective = (ttl == null || ttl.isZero() || ttl.isNegative())
+                ? Duration.ofMinutes(15)
+                : ttl;
+        if (effective.compareTo(Duration.ofDays(7)) > 0) {
+            effective = Duration.ofDays(7);
+        }
+
+        return s3Uploader.presignedGetUrl(key, effective).toString();
+    }
 }
 
