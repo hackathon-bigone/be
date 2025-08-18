@@ -70,7 +70,7 @@ public class PresignUploadService {
 
         // TTL 기본값 + 7일 클램프
         Duration effective = (ttl == null || ttl.isZero() || ttl.isNegative())
-                ? Duration.ofMinutes(15)
+                ? Duration.ofMinutes(360)
                 : ttl;
         if (effective.compareTo(Duration.ofDays(7)) > 0) {
             effective = Duration.ofDays(7);
