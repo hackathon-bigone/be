@@ -96,6 +96,11 @@ public class GroupBuyService {
         return new GroupbuyResponseDto(updatedGroupbuy);
     }
 
+    public List<GroupbuyResponseDto> getMyGroupbuys(Long userId){
+        List<Groupbuy> myGroupbuys = groupBuyRepository.findByAuthor_Id(userId);
+        return myGroupbuys.stream().map(GroupbuyResponseDto::new).collect(Collectors.toList());
+    }
+
     //공동구매 삭제 기능
     @Transactional
     public void delete(Long groupbuyId, SiteUser author) {
@@ -166,5 +171,10 @@ public class GroupBuyService {
                 .collect(Collectors.toList());
         long totalCount = groupBuyRepository.count();
         return new GroupbuyListResponseDto(groupbuyDtos, totalCount);
+    }
+
+    //작성한 게시글 수 세기
+    public long countMyGroupbuys(Long userId){
+        return groupBuyRepository.countByAuthor_Id(userId);
     }
 }

@@ -146,7 +146,7 @@ public class BoardService {
         boardRepository.delete(existingBoard);
     }
 
-    // ✅ 통합된 메서드: 카테고리별 필터링 및 정렬 처리
+    // 통합된 메서드
     @Transactional(readOnly = true)
     public BoardListResponseDto findAllRecipes(String category, String sort) {
         List<Board> boards;
@@ -293,5 +293,16 @@ public class BoardService {
             default:
                 return Optional.empty();
         }
+    }
+
+    public List<BoardResponseDto> getMyBoards(Long userId) {
+        // 레포지토리를 통해 해당 유저가 작성한 게시글 리스트를 조회하고 DTO로 변환하여 반환
+        List<Board> myBoards = boardRepository.findByAuthor_Id(userId);
+        // 이 리스트를 BoardResponseDto로 변환하는 로직 추가
+        return myBoards.stream().map(BoardResponseDto::new).collect(Collectors.toList());
+    }
+
+    public long countMyBoards(Long userId){
+        return boardRepository.countByAuthor_Id(userId);
     }
 }
