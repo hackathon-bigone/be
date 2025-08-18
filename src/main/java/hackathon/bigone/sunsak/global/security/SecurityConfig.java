@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/user/login", "/user/signup").permitAll()
                         .requestMatchers(HttpMethod.GET, "/home/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/user/logout").permitAll()
+                        .requestMatchers(HttpMethod.GET,  "/uploads/r").permitAll() //recipe, groupbuy
 
                         // 인증 필요
                         .requestMatchers(HttpMethod.POST, "/foodbox/receipt/upload").authenticated()
