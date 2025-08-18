@@ -5,6 +5,7 @@ import hackathon.bigone.sunsak.groupbuy.board.entity.Groupbuy;
 import hackathon.bigone.sunsak.groupbuy.board.repository.GroupBuyRepository;
 import hackathon.bigone.sunsak.groupbuy.comment.dto.GroupBuyCommentRequestDto;
 import hackathon.bigone.sunsak.groupbuy.comment.dto.GroupBuyCommentResponseDto;
+import hackathon.bigone.sunsak.groupbuy.comment.dto.MyGroupBuyCommentDto;
 import hackathon.bigone.sunsak.groupbuy.comment.entity.GroupBuyComment;
 import hackathon.bigone.sunsak.groupbuy.comment.repository.GroupBuyCommentRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -68,5 +69,21 @@ public class GroupBuyCommentService {
     }
     public long countComments(Long groupbuyId) {
         return groupbuyCommentRepository.countByGroupbuy_GroupbuyId(groupbuyId);
+    }
+
+
+    private final GroupBuyCommentRepository groupBuyCommentRepository;
+
+    public List<MyGroupBuyCommentDto> getCommentsByUserId(Long userId) {
+        // userId를 바로 사용하여 댓글을 조회
+        List<GroupBuyComment> comments = groupBuyCommentRepository.findByAuthor_Id(userId);
+
+        return comments.stream()
+                .map(MyGroupBuyCommentDto::new)
+                .collect(Collectors.toList());
+    }
+
+    public long getCommentCount(Long userId) {
+        return groupbuyCommentRepository.countByAuthor_Id(userId);
     }
 }
