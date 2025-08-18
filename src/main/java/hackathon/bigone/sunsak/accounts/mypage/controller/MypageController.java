@@ -29,11 +29,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -150,8 +148,6 @@ public class MypageController {
         List<GroupbuyResponseDto> scrapGroupbuys = groupBuyService.getScrapGroupbuysByUser(user);
         return ResponseEntity.ok(scrapGroupbuys);
     }
-
-
 
     //전체 조회
     @GetMapping("/qna")

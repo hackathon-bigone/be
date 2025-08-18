@@ -60,7 +60,7 @@
 건고추	NNP
 반양건	NNP
 양건	NNP
-청양건고추	NNP
+청양고추	NNP
 햇양건고추	NNP
 햇화건고추	NNP
 화건	NNP
@@ -141,7 +141,6 @@
 수수	NNP
 쌀	NNP
 옥수수	NNP
-조	NNP
 트리티케일	NNP
 호밀	NNP
 감자국수	NNP
@@ -373,8 +372,8 @@
 천도복숭아	NNP
 복숭아	NNP
 브로코리	NNP
-하니베리	NNP
 블루베리 NNP
+하니베리	NNP
 사과	NNP
 살구	NNP
 상추	NNP
@@ -738,7 +737,6 @@
 모카빵	NNP
 바나나빵	NNP
 소보루빵	NNP
-슈	NNP
 초코슈	NNP
 슈크림빵	NNP
 옥수수빵	NNP
@@ -1115,6 +1113,7 @@
 초코우유	NNP
 커피우유	NNP
 그릭요거트	NNP
+요구르트 NNP
 딸기호상요구르트	NNP
 망고호상요구르트	NNP
 복숭아호상요구르트	NNP
