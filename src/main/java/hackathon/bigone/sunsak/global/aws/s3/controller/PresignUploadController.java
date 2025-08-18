@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,9 @@ public class PresignUploadController {
 
     private final PresignUploadService presignUploadService;
     private static final Set<String> ALLOWED_PREFIX =
-            Set.of("qna", "recipe", "groupby", "report");
+            Set.of("qna", "recipe", "groupbuy", "report");
+    private static final Set<String> PUBLIC_PREFIX =
+            Set.of("recipe", "groupbuy"); //공개 - 썸네일
 
     //업로드용
     @PostMapping(value = "/{prefix}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -39,7 +42,7 @@ public class PresignUploadController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        Duration ttl = Duration.ofMinutes(15); // 만료 시간
+        Duration ttl = Duration.ofMinutes(20); // 만료 시간
         List<PresignUploadResponse> res =
                 presignUploadService.issuePresigned(prefix, userDetail.getId(), reqList, ttl);
 
@@ -63,7 +66,7 @@ public class PresignUploadController {
             }
         }
 
-        Duration ttl = Duration.ofMinutes(15);
+        Duration ttl = Duration.ofMinutes(20);
         List<PresignPreviewResponse> result = new ArrayList<>(keys.size());
         for (String key : keys) {
             String url = presignUploadService.createGetUrl(key, ttl);
@@ -72,7 +75,7 @@ public class PresignUploadController {
         return ResponseEntity.ok(result);
     }
 
-    //미리보기
+    //미리보기 - 인증해야함
     @GetMapping("/preview")
     public ResponseEntity<PresignPreviewResponse> previewOne(
             @AuthenticationPrincipal CustomUserDetail userDetail,
@@ -85,7 +88,7 @@ public class PresignUploadController {
         String prefix = key.split("/", 2)[0];
         if (!ALLOWED_PREFIX.contains(prefix)) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-        Duration ttl = Duration.ofMinutes(15);
+        Duration ttl = Duration.ofMinutes(20);
         String url = presignUploadService.createGetUrl(key, ttl);
         return ResponseEntity.ok(
                 PresignPreviewResponse.builder()
@@ -94,6 +97,18 @@ public class PresignUploadController {
                         .expiresInSec(ttl.toSeconds())
                         .build()
         );
+    }
+
+    @GetMapping("/r")
+    public ResponseEntity<Void> redirectPublic(@RequestParam("key") String key) {
+        if (key == null || key.isBlank()) return ResponseEntity.badRequest().build();
+
+        String p = key.split("/", 2)[0];
+        if (!PUBLIC_PREFIX.contains(p)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+
+        var ttl = Duration.ofMinutes(20);
+        String url = presignUploadService.createGetUrl(key, ttl);
+        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(url)).build();
     }
 
 }
