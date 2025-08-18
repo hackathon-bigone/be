@@ -21,4 +21,8 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     long countByCategoriesContaining(RecipeCategory category);
 
     List<Board> findTop5ByOrderByLikesDesc();
+
+    List<Board> findByAuthor_Id(Long Author);
+
+    long countByAuthor_Id(Long author);
 }
