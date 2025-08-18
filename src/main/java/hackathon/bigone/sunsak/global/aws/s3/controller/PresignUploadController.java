@@ -42,7 +42,7 @@ public class PresignUploadController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        Duration ttl = Duration.ofMinutes(20); // 만료 시간
+        Duration ttl = Duration.ofMinutes(360); // 만료 시간
         List<PresignUploadResponse> res =
                 presignUploadService.issuePresigned(prefix, userDetail.getId(), reqList, ttl);
 
@@ -66,7 +66,7 @@ public class PresignUploadController {
             }
         }
 
-        Duration ttl = Duration.ofMinutes(20);
+        Duration ttl = Duration.ofMinutes(360);
         List<PresignPreviewResponse> result = new ArrayList<>(keys.size());
         for (String key : keys) {
             String url = presignUploadService.createGetUrl(key, ttl);
@@ -88,7 +88,7 @@ public class PresignUploadController {
         String prefix = key.split("/", 2)[0];
         if (!ALLOWED_PREFIX.contains(prefix)) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-        Duration ttl = Duration.ofMinutes(20);
+        Duration ttl = Duration.ofMinutes(360);
         String url = presignUploadService.createGetUrl(key, ttl);
         return ResponseEntity.ok(
                 PresignPreviewResponse.builder()
@@ -106,7 +106,7 @@ public class PresignUploadController {
         String p = key.split("/", 2)[0];
         if (!PUBLIC_PREFIX.contains(p)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 
-        var ttl = Duration.ofMinutes(20);
+        var ttl = Duration.ofMinutes(360);
         String url = presignUploadService.createGetUrl(key, ttl);
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(url)).build();
     }
