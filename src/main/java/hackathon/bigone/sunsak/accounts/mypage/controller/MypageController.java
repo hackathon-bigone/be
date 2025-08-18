@@ -6,19 +6,20 @@ import hackathon.bigone.sunsak.accounts.mypage.dto.ReportDto;
 import hackathon.bigone.sunsak.accounts.mypage.dto.question.QuestionDetailResponse;
 import hackathon.bigone.sunsak.accounts.mypage.dto.question.QuestionRequest;
 import hackathon.bigone.sunsak.accounts.mypage.dto.question.QuestionResponse;
-import hackathon.bigone.sunsak.accounts.mypage.repository.QuestionRepository;
 import hackathon.bigone.sunsak.accounts.mypage.service.MypageService;
 import hackathon.bigone.sunsak.accounts.mypage.service.QnaService;
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
+import hackathon.bigone.sunsak.accounts.user.service.SignupService;
 import hackathon.bigone.sunsak.global.security.jwt.CustomUserDetail;
 import hackathon.bigone.sunsak.global.validate.accounts.SignupValidator;
 import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyResponseDto;
 import hackathon.bigone.sunsak.groupbuy.board.service.GroupBuyService;
+import hackathon.bigone.sunsak.groupbuy.comment.dto.MyGroupBuyCommentDto;
+import hackathon.bigone.sunsak.groupbuy.comment.service.GroupBuyCommentService;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardResponseDto;
 import hackathon.bigone.sunsak.recipe.board.service.BoardService;
-import hackathon.bigone.sunsak.groupbuy.board.service.GroupBuyService;
-import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyResponseDto;
-import lombok.RequiredArgsConstructor;
+import hackathon.bigone.sunsak.recipe.comment.dto.MypageDto;
+import hackathon.bigone.sunsak.recipe.comment.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,9 +29,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -41,7 +44,10 @@ public class MypageController {
     private final BoardService boardService; //레시피
     private final GroupBuyService groupBuyService;
     private final QnaService qnaService;
-    private final QuestionRepository questionRepository;
+    private final SignupService signupService;
+    private final CommentService recipeCommentService;
+    private final GroupBuyCommentService groupBuyCommentService;
+
 
     //마이페이지 조회
     @GetMapping("")
@@ -56,35 +62,35 @@ public class MypageController {
                 "nickname", user.getNickname(),
                 "username", user.getUsername()
         ));
-   }
+    }
 
-   //닉네임 수정
-   @PatchMapping("/nickname")
-   public ResponseEntity<?> updateNickname(
-           @AuthenticationPrincipal CustomUserDetail userDetail,
-           @RequestBody Map<String, String> request
-   ){
-       if(userDetail== null){
-           return ResponseEntity.ok(
-                   Map.of("message", "로그인을 해주세요")
-           );
-       }
+    //닉네임 수정
+    @PatchMapping("/nickname")
+    public ResponseEntity<?> updateNickname(
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            @RequestBody Map<String, String> request
+    ){
+        if(userDetail== null){
+            return ResponseEntity.ok(
+                    Map.of("message", "로그인을 해주세요")
+            );
+        }
 
-       String nickname = request.get("nickname");
-       signupValidator.nicknameValidate(nickname);
+        String nickname = request.get("nickname");
+        signupValidator.nicknameValidate(nickname);
 
-       mypageService.updateNickname(userDetail.getId(), nickname);
-       return ResponseEntity.ok(Map.of(
-               "message", "닉네임 변경이 완료되었습니다."
-       ));
-   }
+        mypageService.updateNickname(userDetail.getId(), nickname);
+        return ResponseEntity.ok(Map.of(
+                "message", "닉네임 변경이 완료되었습니다."
+        ));
+    }
 
-   //비밀번호 수정
-   @PatchMapping("/password")
-   public ResponseEntity<?> updatePassword(
-           @AuthenticationPrincipal CustomUserDetail userDetail,
-           @RequestBody PasswordChangeDto req
-   ){
+    //비밀번호 수정
+    @PatchMapping("/password")
+    public ResponseEntity<?> updatePassword(
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            @RequestBody PasswordChangeDto req
+    ){
         if(userDetail== null){
             return ResponseEntity.ok(
                     Map.of("message", "로그인을 해주세요")
@@ -93,22 +99,22 @@ public class MypageController {
         signupValidator.passwordValidate(req.getNewPassword(), req.getRepeatPw());
         mypageService.updatePassword(userDetail.getId(), req);
         return ResponseEntity.ok(Map.of(
-               "message", "비밀번호 변경이 완료되었습니다."
+                "message", "비밀번호 변경이 완료되었습니다."
         ));
-   }
+    }
 
-   //공지사항
-   @GetMapping("/notice") // 전체 조회
-   public ResponseEntity<List<NoticeDto>> getAllNotices(Authentication authentication){
-       if (authentication == null || !authentication.isAuthenticated()) {
-           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-       }
+    //공지사항
+    @GetMapping("/notice") // 전체 조회
+    public ResponseEntity<List<NoticeDto>> getAllNotices(Authentication authentication){
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
-       List<NoticeDto> notices = mypageService.getAllNotices();
-       return ResponseEntity.ok(notices);
-   }
+        List<NoticeDto> notices = mypageService.getAllNotices();
+        return ResponseEntity.ok(notices);
+    }
 
-   //상세 조회
+    //상세 조회
     @GetMapping("/notice/{noticeId}")
     public ResponseEntity<NoticeDto> getNotice(
             Authentication authentication,
@@ -118,8 +124,8 @@ public class MypageController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return mypageService.getNoticeById(noticeId)
-                .map(ResponseEntity::ok)                // 200 + DTO(JSON)
-                .orElseGet(() -> ResponseEntity.notFound().build()); // 404
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     //레시피스크랩
@@ -236,6 +242,47 @@ public class MypageController {
         response.put("recipePostCount", recipePostCount);
         response.put("groupBuyPostCount", groupBuyPostCount);
         response.put("totalPosts", recipePostCount + groupBuyPostCount);
+
+        return ResponseEntity.ok(response);
+    }
+
+    // 내가 쓴 레시피 댓글 조회
+    @GetMapping("/comments/recipe")
+    public ResponseEntity<List<MypageDto>> getMyRecipeComments(@AuthenticationPrincipal CustomUserDetail userDetail) {
+        if (userDetail == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        // userDetail에서 사용자 ID를 직접 가져와 서비스에 전달
+        List<MypageDto> myComments = recipeCommentService.getCommentsByUserId(userDetail.getId());
+        return ResponseEntity.ok(myComments);
+    }
+
+    // 내가 쓴 공동구매 댓글 조회
+    @GetMapping("/comments/groupbuy")
+    public ResponseEntity<List<MyGroupBuyCommentDto>> getMyGroupBuyComments(@AuthenticationPrincipal CustomUserDetail userDetail) {
+        if (userDetail == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        // userDetail에서 사용자 ID를 직접 가져와 서비스에 전달
+        List<MyGroupBuyCommentDto> myComments = groupBuyCommentService.getCommentsByUserId(userDetail.getId());
+        return ResponseEntity.ok(myComments);
+    }
+
+    @GetMapping("/my-comments/count")
+    public ResponseEntity<Map<String, Long>> getMyCommentCounts(@AuthenticationPrincipal CustomUserDetail userDetail) {
+        if (userDetail == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Long userId = userDetail.getId();
+
+        // 각 서비스의 메서드를 호출하여 댓글 개수를 가져옴
+        long recipeCommentCount = recipeCommentService.getCommentCount(userId);
+        long groupBuyCommentCount = groupBuyCommentService.getCommentCount(userId);
+
+        Map<String, Long> response = new HashMap<>();
+        response.put("recipeCommentCount", recipeCommentCount);
+        response.put("groupBuyCommentCount", groupBuyCommentCount);
+        response.put("totalCommentCount", recipeCommentCount + groupBuyCommentCount);
 
         return ResponseEntity.ok(response);
     }

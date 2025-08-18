@@ -12,4 +12,6 @@ public interface GroupBuyCommentRepository extends JpaRepository<GroupBuyComment
     // 공동구매 게시글 ID로 댓글 목록을 찾는 메서드
     List<GroupBuyComment> findByGroupbuy_GroupbuyId(Long groupbuyId);
     long countByGroupbuy_GroupbuyId(Long groupbuyId);
+    List<GroupBuyComment> findByAuthor_Id(Long authorId);
+    long countByAuthor_Id(Long authorId);
 }
