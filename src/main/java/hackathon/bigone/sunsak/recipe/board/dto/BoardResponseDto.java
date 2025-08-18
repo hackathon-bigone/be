@@ -27,6 +27,7 @@ public class BoardResponseDto {
     private int likeCount;
     private int commentCount;
     private String authorName;
+    private long authorId;
 
     public BoardResponseDto(Board board, List<CommentResponseDto> comments) {
         this.postId = board.getPostId();
@@ -36,6 +37,7 @@ public class BoardResponseDto {
         this.authorName = board.getAuthor() != null
                 ? board.getAuthor().getNickname() // 🔹 nickname 사용
                 : null;
+
 
         this.steps = board.getSteps().stream()
                 .map(StepResponseDto::new)
@@ -80,6 +82,7 @@ public class BoardResponseDto {
         this.authorName = board.getAuthor() != null
                 ? board.getAuthor().getNickname() // 🔹 nickname 사용
                 : null;
+        this.authorId = (board.getAuthor() != null) ? board.getAuthor().getId() : null;
 
         this.steps = board.getSteps().stream()
                 .map(StepResponseDto::new)
