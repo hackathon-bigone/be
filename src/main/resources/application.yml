@@ -2,8 +2,8 @@ server:
   port: 8080
 
 spring:
-#  profiles:
-#    active: dev # 배포 시 prod로
+  #  profiles:
+  #    active: dev # 배포 시 prod로
 
   datasource:
     url: jdbc:mysql://sunsak-db.cva48mgg09q4.ap-northeast-2.rds.amazonaws.com:3306/sunsak
