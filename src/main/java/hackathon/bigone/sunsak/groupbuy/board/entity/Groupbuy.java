@@ -54,6 +54,8 @@ public class Groupbuy {
     @JoinColumn(name = "user_id", nullable = false)
     private SiteUser author;
 
+    private String authorUsername;
+
     //댓글
     @OneToMany(mappedBy = "groupbuy", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GroupBuyComment> groupBuyComments = new ArrayList<>();

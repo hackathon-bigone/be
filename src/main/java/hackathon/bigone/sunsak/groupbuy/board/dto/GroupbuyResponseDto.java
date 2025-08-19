@@ -26,7 +26,7 @@ public class GroupbuyResponseDto {
     private String createDate;
     private String authorName;
     private int authorPostCount;
-    private long authorId;
+    private String authorUsername;
 
     private List<String> groupbuyLinkUrls;
 
@@ -43,7 +43,7 @@ public class GroupbuyResponseDto {
         this.status = groupbuy.getStatus();
         this.createDate = DisplayDateUtil.toDisplay(groupbuy.getCreateDate());
         this.authorName = (groupbuy.getAuthor() != null) ? groupbuy.getAuthor().getNickname() : null;
-        this.authorId = (groupbuy.getAuthor() != null) ? groupbuy.getAuthor().getId() : null;
+        this.authorUsername =  (groupbuy.getAuthor() != null) ? groupbuy.getAuthor().getUsername() : null;
         this.groupbuyLinkUrls = (groupbuy.getBuyLinks() != null) ?
                 groupbuy.getBuyLinks().stream()
                         .map(GroupBuyLink::getGroupbuylinkUrl)
