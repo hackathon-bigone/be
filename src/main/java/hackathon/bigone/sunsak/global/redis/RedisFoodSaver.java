@@ -50,10 +50,10 @@ public class RedisFoodSaver {
 //                        redisTemplate.opsForValue().set(varietyKey, "대표식품명:" + mainName);
 //                    }
 //                }
-                if (!variety.isEmpty()) {
-                    String varietyKey = "keyword:" + variety;
-                    redisTemplate.opsForValue().set(varietyKey, "품종명:" + variety);
-                }
+//                if (!variety.isEmpty()) {
+//                    String varietyKey = "keyword:" + variety;
+//                    redisTemplate.opsForValue().set(varietyKey, "품종명:" + variety);
+//                }
 
 //                if (!mainName.isEmpty()) {
 //                    String mainKey = "keyword:" + mainName;
@@ -61,40 +61,41 @@ public class RedisFoodSaver {
 //                        redisTemplate.opsForValue().set(mainKey, "품종명:" + variety);
 //                    }
 //                }
+                //대표 식품명만 redis
                 if (!mainName.isEmpty()) {
                     String mainKey = "keyword:" + mainName;
-                    redisTemplate.opsForValue().set(mainKey, "품목명:" + mainName);
+                    redisTemplate.opsForValue().set(mainKey, "대표식품명:" + mainName); //대표식품명
                 }
 
-                // 유통기한 저장 (숫자인 경우만)
+                // 유통기한 저장
                 if (expiry.matches("\\d+")) {
                     if (!mainName.isEmpty()) {
-                        redisTemplate.opsForValue().set("expiry:" + mainName, expiry);
+                        //대표 식품명
+                        redisTemplate.opsForValue().set("expiry:item:" + mainName, expiry);
                     }
                     if (!variety.isEmpty()) {
-                        redisTemplate.opsForValue().set("expiry:" + variety, expiry);
+                        //품종명
+                        redisTemplate.opsForValue().set("expiry:variety:" + variety, expiry);
                     }
                 }
             }
-
             System.out.println("데이터 저장 완료");
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void clearKeywordData() {
-        Set<String> keys1 = redisTemplate.keys("keyword:*");
-        Set<String> keys2 = redisTemplate.keys("expiry:*");
+        var k1 = redisTemplate.keys("keyword:*");
+        var k2 = redisTemplate.keys("expiry:item:*");
+        var k3 = redisTemplate.keys("expiry:variety:*");
 
-        if (keys1 != null && !keys1.isEmpty()) {
-            redisTemplate.delete(keys1);
-            System.out.println("기존 keyword:* 데이터 삭제 완료!");
-        }
-        if (keys2 != null && !keys2.isEmpty()) {
-            redisTemplate.delete(keys2);
-            System.out.println("기존 expiry:* 데이터 삭제 완료!");
-        }
+        if (k1 != null && !k1.isEmpty()) redisTemplate.delete(k1);
+        if (k2 != null && !k2.isEmpty()) redisTemplate.delete(k2);
+        if (k3 != null && !k3.isEmpty()) redisTemplate.delete(k3);
+
+        System.out.println("기존 keyword/expiry 데이터 삭제 완료");
     }
 
     public void saveWithReset(String filePath) {
