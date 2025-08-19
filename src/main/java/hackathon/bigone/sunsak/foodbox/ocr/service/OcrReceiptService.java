@@ -30,35 +30,44 @@ public class OcrReceiptService {
         if (userId == null) throw new IllegalArgumentException("userId가 없습니다.");
         if (ocrItems == null || ocrItems.isEmpty()) return queryService.getFoodsByUserList(userId);
 
-        // Komoran 분석 + user_dict / 자유명사 분류
-        NlpService.ClassifiedTokens classified = nlpService.classifyByUserDict(ocrItems);
-        Map<String, Integer> userDictGroup = classified.getUserDict();   // 이미 표준명
-        Map<String, Integer> freeNounGroup = classified.getFreeNouns();  // 자유명사
-
-        // 자유명사 → 표준명 매핑
-        Map<String, String> mappedFree = normalizationService.normalizeFreeNouns(
-                new ArrayList<>(freeNounGroup.keySet())
-        );
-
-        // 표준명 기준 최종 수량 집계
         Map<String, Integer> finalCount = new LinkedHashMap<>();
-        userDictGroup.forEach((k, v) -> finalCount.merge(k, v, Integer::sum));
-        for (var e : freeNounGroup.entrySet()) {
-            String std = mappedFree.get(e.getKey());
-            if (std == null) continue; // 매핑 실패 항목은 버림
-            finalCount.merge(std, e.getValue(), Integer::sum);
+
+        for (OcrExtractedItem line : ocrItems) {
+            // 라인 단위로 분류
+            NlpService.ClassifiedTokens classifiedLine = nlpService.classifyByUserDict(List.of(line));
+
+            // 라인 내에서 표준명 중복 제거
+            Set<String> stdNamesInLine = new LinkedHashSet<>();
+
+            // user_dict에 잡힌 표준명(이미 표준화된 이름)
+            if (classifiedLine != null && classifiedLine.getUserDict() != null) {
+                stdNamesInLine.addAll(classifiedLine.getUserDict().keySet());
+            }
+
+            // 자유명사 → 표준명 매핑
+            if (classifiedLine != null && classifiedLine.getFreeNouns() != null && !classifiedLine.getFreeNouns().isEmpty()) {
+                Map<String, String> mappedFree = normalizationService.normalizeFreeNouns(
+                        new ArrayList<>(classifiedLine.getFreeNouns().keySet())
+                );
+                if (mappedFree != null) {
+                    for (String std : mappedFree.values()) {
+                        if (std != null && !std.isBlank()) stdNamesInLine.add(std);
+                    }
+                }
+            }
+
+            // 라인에 등장한 표준명 각각 1개만 카운트
+            for (String std : stdNamesInLine) {
+                finalCount.merge(std, 1, Integer::sum);
+            }
         }
+
         if (finalCount.isEmpty()) return queryService.getFoodsByUserList(userId);
 
-        // 이름별 유통기한 일수 Redis 조회
-        List<String> names = new ArrayList<>(finalCount.keySet());
-        List<String> expiryKeys = names.stream().map(n -> EXPIRY_PREFIX + n).toList();
-        List<String> expiryVals = redisTemplate.opsForValue().multiGet(expiryKeys);
-
+        // 이름별 유통기한 일수 조회 (품종 우선 → 대표식품 폴백)
         Map<String, Integer> daysByName = new HashMap<>();
-        for (int i = 0; i < names.size(); i++) {
-            String raw = (expiryVals != null && i < expiryVals.size()) ? expiryVals.get(i) : null;
-            daysByName.put(names.get(i), parseExpiryDays(raw));
+        for (String name : finalCount.keySet()) {
+            daysByName.put(name, lookupExpiryDays(name));
         }
 
         // (이름, 유통기한날짜) 기준으로 수량 합쳐서 업서트
@@ -66,7 +75,7 @@ public class OcrReceiptService {
         List<FoodBoxCommandService.FoodUpsertItem> aggregated = new ArrayList<>();
         for (var e : finalCount.entrySet()) {
             String name = e.getKey();
-            int qty = e.getValue();
+            int qty = e.getValue(); // 라인 수 기준
             int days = daysByName.getOrDefault(name, DEFAULT_EXPIRY_DAYS);
             LocalDate expiry = (days <= 0) ? null : today.plusDays(days);
             aggregated.add(new FoodBoxCommandService.FoodUpsertItem(name, qty, expiry));
@@ -77,10 +86,20 @@ public class OcrReceiptService {
         return queryService.getFoodsByUserList(userId);
     }
 
-    private int parseExpiryDays(String s) {
-        if (s == null || s.isBlank()) return DEFAULT_EXPIRY_DAYS;
-        try { return Integer.parseInt(s.trim()); }
-        catch (NumberFormatException e) { return DEFAULT_EXPIRY_DAYS; }
+    // 품종 우선 → 없으면 대표식품
+    private int lookupExpiryDays(String name) {
+        String v = redisTemplate.opsForValue().get("expiry:variety:" + name);
+        if (isNumeric(v)) return Integer.parseInt(v);
+        v = redisTemplate.opsForValue().get("expiry:item:" + name);
+        if (isNumeric(v)) return Integer.parseInt(v);
+        return DEFAULT_EXPIRY_DAYS;
+    }
+
+    private boolean isNumeric(String s) {
+        if (s == null || s.isBlank()) return false;
+        for (int i = 0; i < s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i))) return false;
+        }
+        return true;
     }
 }
-
