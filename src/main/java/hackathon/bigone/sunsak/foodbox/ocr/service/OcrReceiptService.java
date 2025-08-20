@@ -35,35 +35,40 @@ public class OcrReceiptService {
         for (OcrExtractedItem line : ocrItems) {
             // 라인 단위로 분류
             NlpService.ClassifiedTokens classifiedLine = nlpService.classifyByUserDict(List.of(line));
-
-            // 라인 내에서 표준명 중복 제거
-            Set<String> stdNamesInLine = new LinkedHashSet<>();
+            String stdName = null;
+//            // 라인 내에서 표준명 중복 제거
+//            Set<String> stdNamesInLine = new LinkedHashSet<>();
 
             // user_dict에 잡힌 표준명
             if (classifiedLine != null && classifiedLine.getUserDict() != null) {
-                Map<String, Integer> ud = classifiedLine.getUserDict(); // 표준명 → 빈도/점수 등
-                for (String std : ud.keySet()) {                        // ⭐️ values() → keySet()
-                    String s = normalizeKey(std);
-                    if (!s.isBlank()) stdNamesInLine.add(s);
-                }
-            }
-
-            // 자유명사 → 표준명 매핑
-            if (classifiedLine != null && classifiedLine.getFreeNouns() != null && !classifiedLine.getFreeNouns().isEmpty()) {
-                Map<String, String> mappedFree = normalizationService.normalizeFreeNouns(
-                        new ArrayList<>(classifiedLine.getFreeNouns().keySet())
-                );
-                if (mappedFree != null) {
-                    for (String std : mappedFree.values()) {
-                        if (std != null && !std.isBlank()) stdNamesInLine.add(std);
+                for (String std : classifiedLine.getUserDict().keySet()) {
+                    String normalizedStd = normalizeKey(std);
+                    if (!normalizedStd.isBlank()) {
+                        stdName = normalizedStd;
+                        break;
                     }
                 }
             }
 
-            int lineQty = line.getQuantity();
+            // user_dict에 없다면 자유명사 → 표준명 매핑
+            if (stdName == null && classifiedLine != null && classifiedLine.getFreeNouns() != null
+                    && !classifiedLine.getFreeNouns().isEmpty()) {
+                Map<String, String> mappedFree = normalizationService.normalizeFreeNouns(
+                        new ArrayList<>(classifiedLine.getFreeNouns().keySet())
+                );
+                if (mappedFree != null && !mappedFree.isEmpty()) {
+                    for (String mappedStd : mappedFree.values()) {
+                        if (mappedStd != null && !mappedStd.isBlank()) {
+                            stdName = mappedStd;
+                            break;
+                        }
+                    }
+                }
+            }
 
-            for (String std : stdNamesInLine) {
-                finalCount.merge(std, lineQty, Integer::sum);
+            if (stdName != null) {
+                int lineQty = line.getQuantity();
+                finalCount.merge(stdName, lineQty, Integer::sum);
             }
         }
 
