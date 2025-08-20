@@ -112,7 +112,7 @@ public class PresignUploadController {
     }
 
     //수정하기 - 레시피, 공동구매만
-    @PostMapping("/modify")
+    @PostMapping("/put")
     public ResponseEntity<PresignPreviewResponse> issuePutForExistingKey(
             @AuthenticationPrincipal CustomUserDetail userDetail,
             @RequestParam String key,
