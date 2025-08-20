@@ -305,4 +305,8 @@ public class BoardService {
     public long countMyBoards(Long userId){
         return boardRepository.countByAuthor_Id(userId);
     }
+
+    public long countRecipeScrap(Long userId){
+        return scrapRepository.countByUser_Id(userId);
+    }
 }

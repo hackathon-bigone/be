@@ -282,4 +282,23 @@ public class MypageController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/scrap/count")
+    public ResponseEntity<Map<String , Long>> getScrapCounts(@AuthenticationPrincipal CustomUserDetail userDetail){
+        if (userDetail == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        Long userId= userDetail.getId();
+
+        long recipeScrapCount = boardService.countRecipeScrap(userId);
+        long groupbuyScrapCount = groupBuyService.countGroupbuyScrap(userId);
+
+        Map<String ,Long> response = new HashMap<>();
+        response.put("recipeScrapCount", recipeScrapCount);
+        response.put("groupbuyScrapCount", groupbuyScrapCount);
+        response.put("totalScrapCount", recipeScrapCount + groupbuyScrapCount);
+
+        return ResponseEntity.ok(response);
+        }
+
 }
