@@ -39,7 +39,7 @@ public class OcrReceiptService {
             // 라인 내에서 표준명 중복 제거
             Set<String> stdNamesInLine = new LinkedHashSet<>();
 
-            // user_dict에 잡힌 표준명(이미 표준화된 이름)
+            // user_dict에 잡힌 표준명
             if (classifiedLine != null && classifiedLine.getUserDict() != null) {
                 stdNamesInLine.addAll(classifiedLine.getUserDict().keySet());
             }
@@ -56,9 +56,10 @@ public class OcrReceiptService {
                 }
             }
 
-            // 라인에 등장한 표준명 각각 1개만 카운트
+            int lineQty = line.getQuantity();
+
             for (String std : stdNamesInLine) {
-                finalCount.merge(std, 1, Integer::sum);
+                finalCount.merge(std, lineQty, Integer::sum);
             }
         }
 
