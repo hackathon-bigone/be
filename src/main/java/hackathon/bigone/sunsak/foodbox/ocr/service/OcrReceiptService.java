@@ -41,7 +41,11 @@ public class OcrReceiptService {
 
             // user_dict에 잡힌 표준명
             if (classifiedLine != null && classifiedLine.getUserDict() != null) {
-                stdNamesInLine.addAll(classifiedLine.getUserDict().keySet());
+                Map<String, Integer> ud = classifiedLine.getUserDict(); // 표준명 → 빈도/점수 등
+                for (String std : ud.keySet()) {                        // ⭐️ values() → keySet()
+                    String s = normalizeKey(std);
+                    if (!s.isBlank()) stdNamesInLine.add(s);
+                }
             }
 
             // 자유명사 → 표준명 매핑
@@ -85,6 +89,12 @@ public class OcrReceiptService {
 
         // 최신 목록 반환
         return queryService.getFoodsByUserList(userId);
+    }
+
+    private String normalizeKey(String s) {
+        if (s == null) return "";
+        String t = s.trim();
+        return t;
     }
 
     // 품종 우선 → 없으면 대표식품
