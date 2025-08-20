@@ -112,7 +112,7 @@ public class PresignUploadController {
     }
 
     //수정하기 - 레시피, 공동구매만
-    @PostMapping("/put")
+    @PostMapping("/modify")
     public ResponseEntity<PresignPreviewResponse> issuePutForExistingKey(
             @AuthenticationPrincipal CustomUserDetail userDetail,
             @RequestParam String key,
@@ -128,7 +128,7 @@ public class PresignUploadController {
         String expected = prefix + "/" + userDetail.getId() + "/";
         if (!key.startsWith(expected)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
-        var ttl = Duration.ofMinutes(30);
+        var ttl = Duration.ofMinutes(360);
         String putUrl = presignUploadService.createPutUrlForExistingKey(key, contentType, ttl);
 
         return ResponseEntity.ok(
