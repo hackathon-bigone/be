@@ -31,7 +31,7 @@ public class Groupbuy {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String groupbuyDescription;
 
-    @Column(nullable = true, length = 500)
+    @Column(nullable = false, length = 500)
     private String mainImageUrl;
 
     @Enumerated(EnumType.STRING)

@@ -33,7 +33,7 @@ public class Board {
     private int cookingTime;
 
     // 대표사진 URL
-    @Column(nullable = true, length = 500)
+    @Column(nullable = false, length = 500)
     private String mainImageUrl;
 
     // 재료
