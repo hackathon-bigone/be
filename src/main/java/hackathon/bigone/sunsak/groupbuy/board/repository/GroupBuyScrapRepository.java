@@ -11,5 +11,6 @@ import java.util.Optional;
 public interface GroupBuyScrapRepository extends JpaRepository<GroupBuyScrap, Long> {
     Optional<GroupBuyScrap> findByUserAndGroupbuy(SiteUser user, Groupbuy groupbuy);
     List<GroupBuyScrap> findByUser(SiteUser user);
+    Long countByUser_Id(Long userId);
 
 }

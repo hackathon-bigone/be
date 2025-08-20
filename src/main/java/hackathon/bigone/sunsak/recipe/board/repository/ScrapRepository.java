@@ -12,4 +12,5 @@ public interface ScrapRepository extends JpaRepository<RecipeScrap,Long> {
     Optional<RecipeScrap> findByBoardAndUser(Board board,  SiteUser user);
     List<RecipeScrap> findByUser(SiteUser user);
     long countByBoard(Board board);
+    long countByUser_Id(long userId);
 }

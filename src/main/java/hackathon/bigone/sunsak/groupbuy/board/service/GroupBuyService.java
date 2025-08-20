@@ -13,6 +13,7 @@ import hackathon.bigone.sunsak.groupbuy.board.repository.GroupBuyScrapRepository
 import hackathon.bigone.sunsak.groupbuy.comment.dto.GroupBuyCommentResponseDto;
 import hackathon.bigone.sunsak.groupbuy.comment.repository.GroupBuyCommentRepository;
 import hackathon.bigone.sunsak.groupbuy.comment.service.GroupBuyCommentService;
+import hackathon.bigone.sunsak.recipe.board.repository.ScrapRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class GroupBuyService {
     private final GroupBuyScrapRepository groupBuyScrapRepository;
     private final GroupBuyCommentService groupBuyCommentService;
     private final GroupBuyCommentRepository groupBuyCommentRepository;
+    private ScrapRepository scrapRepository;
 
 
     //공동구매 생성 기능
@@ -189,5 +191,10 @@ public class GroupBuyService {
     //작성한 게시글 수 세기
     public long countMyGroupbuys(Long userId){
         return groupBuyRepository.countByAuthor_Id(userId);
+    }
+
+    //스크랩한 게시글 수 세기
+    public long countGroupbuyScrap(Long userId){
+        return groupBuyScrapRepository.countByUser_Id(userId);
     }
 }
