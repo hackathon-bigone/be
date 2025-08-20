@@ -25,10 +25,9 @@ import java.util.Set;
 public class PresignUploadController {
 
     private final PresignUploadService presignUploadService;
-    private static final Set<String> ALLOWED_PREFIX =
-            Set.of("qna", "recipe", "groupbuy", "report");
-    private static final Set<String> PUBLIC_PREFIX =
-            Set.of("recipe", "groupbuy"); //공개 - 썸네일
+    private static final Set<String> ALLOWED_PREFIX = Set.of("qna", "recipe", "groupbuy", "report");
+    private static final Set<String> PUBLIC_PREFIX = Set.of("recipe", "groupbuy"); //공개 - 썸네일
+    private static final Set<String> MODIFY_PREFIX = Set.of("recipe", "groupbuy"); //수정 가능한 prefix
 
     //업로드용
     @PostMapping(value = "/{prefix}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -99,6 +98,7 @@ public class PresignUploadController {
         );
     }
 
+    // 썸네일 - 레시피, 공동구매만
     @GetMapping("/r")
     public ResponseEntity<Void> redirectPublic(@RequestParam("key") String key) {
         if (key == null || key.isBlank()) return ResponseEntity.badRequest().build();
@@ -109,6 +109,35 @@ public class PresignUploadController {
         var ttl = Duration.ofMinutes(360);
         String url = presignUploadService.createGetUrl(key, ttl);
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(url)).build();
+    }
+
+    //수정하기 - 레시피, 공동구매만
+    @PostMapping("/put")
+    public ResponseEntity<PresignPreviewResponse> issuePutForExistingKey(
+            @AuthenticationPrincipal CustomUserDetail userDetail,
+            @RequestParam String key,
+            @RequestParam String contentType // 예: image/jpeg, image/png
+    ) {
+        if (userDetail == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        if (key == null || key.isBlank()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+        String prefix = key.split("/", 2)[0];
+        if (!MODIFY_PREFIX.contains(prefix)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+
+        // 사용자의 이미지인지 확인
+        String expected = prefix + "/" + userDetail.getId() + "/";
+        if (!key.startsWith(expected)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+
+        var ttl = Duration.ofMinutes(30);
+        String putUrl = presignUploadService.createPutUrlForExistingKey(key, contentType, ttl);
+
+        return ResponseEntity.ok(
+                PresignPreviewResponse.builder()
+                        .key(key)
+                        .getUrl(putUrl)              // put URL 담아줌 (DTO 재사용)
+                        .expiresInSec(ttl.toSeconds())
+                        .build()
+        );
     }
 
 }
