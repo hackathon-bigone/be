@@ -1,6 +1,7 @@
 package hackathon.bigone.sunsak.recipe.board.service;
 
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
+import hackathon.bigone.sunsak.global.aws.s3.service.S3Uploader;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardListResponseDto;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardRequestDto;
 import hackathon.bigone.sunsak.recipe.board.dto.BoardResponseDto;
@@ -30,6 +31,7 @@ public class BoardService {
     private final LikeRepository likeRepository;
     private final ScrapRepository scrapRepository;
     private final CommentService commentService;
+    private final S3Uploader s3Uploader;
 
     @Transactional
     public BoardResponseDto create(BoardRequestDto boardDto, SiteUser author) {
@@ -86,6 +88,12 @@ public class BoardService {
             throw new IllegalStateException("이 게시글을 수정할 권한이 없습니다.");
         }
 
+        s3Uploader.delete(existingBoard.getMainImageUrl());
+
+        for (Step step : existingBoard.getSteps()) {
+            s3Uploader.delete(step.getStepImageUrl());
+        }
+
         existingBoard.setTitle(boardDto.getTitle());
         existingBoard.setRecipeDescription(boardDto.getRecipeDescription());
         existingBoard.setCookingTime(boardDto.getCookingTime());
@@ -128,6 +136,7 @@ public class BoardService {
         if (boardDto.getCategories() != null) {
             existingBoard.getCategories().addAll(boardDto.getCategories());
         }
+
         Board savedBoard = boardRepository.save(existingBoard);
 
         List<CommentResponseDto> comments = commentService.getComments(postId);
@@ -142,6 +151,12 @@ public class BoardService {
 
         if (!existingBoard.getAuthor().equals(currentUser)) {
             throw new IllegalStateException("이 게시글을 삭제할 권한이 없습니다.");
+        }
+
+        s3Uploader.delete(existingBoard.getMainImageUrl());
+
+        for (Step step : existingBoard.getSteps()){
+            s3Uploader.delete(step.getStepImageUrl());
         }
         boardRepository.delete(existingBoard);
     }

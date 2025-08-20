@@ -1,6 +1,7 @@
 package hackathon.bigone.sunsak.groupbuy.board.service;
 
 import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
+import hackathon.bigone.sunsak.global.aws.s3.service.S3Uploader;
 import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyListResponseDto;
 import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyRequestDto;
 import hackathon.bigone.sunsak.groupbuy.board.dto.GroupbuyResponseDto;
@@ -37,7 +38,7 @@ public class GroupBuyService {
     private final GroupBuyCommentService groupBuyCommentService;
     private final GroupBuyCommentRepository groupBuyCommentRepository;
     private ScrapRepository scrapRepository;
-
+    private S3Uploader s3Uploader;
 
     //공동구매 생성 기능
     @Transactional
@@ -67,7 +68,6 @@ public class GroupBuyService {
         return new GroupbuyResponseDto(savedGroupbuy);
     }
 
-    //공동구매 수정 기능
     @Transactional
     public GroupbuyResponseDto update(Long groupbuyId, GroupbuyRequestDto groupdto, SiteUser author) {
         Groupbuy groupbuy = groupBuyRepository.findById(groupbuyId)
@@ -77,10 +77,12 @@ public class GroupBuyService {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
 
+        s3Uploader.delete(groupbuy.getMainImageUrl());
+
         groupbuy.setGroupbuyTitle(groupdto.getGroupbuyTitle());
         groupbuy.setGroupbuyDescription(groupdto.getGroupbuyDescription());
         groupbuy.setGroupbuyCount(groupdto.getGroupbuyCount());
-        groupbuy.setMainImageUrl(groupdto.getMainImageUrl());
+        groupbuy.setMainImageUrl(groupdto.getMainImageUrl()); // 새로운 이미지 URL로 업데이트
 
         if (groupdto.getStatus() != null) {
             groupbuy.setStatus(groupdto.getStatus());
@@ -98,11 +100,6 @@ public class GroupBuyService {
 
         Groupbuy updatedGroupbuy = groupBuyRepository.save(groupbuy);
         return new GroupbuyResponseDto(updatedGroupbuy);
-    }
-
-    public List<GroupbuyResponseDto> getMyGroupbuys(Long userId){
-        List<Groupbuy> myGroupbuys = groupBuyRepository.findByAuthor_Id(userId);
-        return myGroupbuys.stream().map(GroupbuyResponseDto::new).collect(Collectors.toList());
     }
 
     //공동구매 삭제 기능
@@ -125,8 +122,6 @@ public class GroupBuyService {
 
         Long authorId= groupbuy.getAuthor().getId();
         long authorPostCount = groupBuyRepository.countByAuthor_Id(authorId);
-
-        // 첫 번째 변수 선언을 제거하고, 기존 코드와 합쳐서 올바르게 수정합니다.
         List<GroupBuyCommentResponseDto> comments = groupBuyCommentRepository.findByGroupbuy_GroupbuyId(groupbuyId).stream()
                 .filter(comment -> comment.getParent() == null)
                 .map(GroupBuyCommentResponseDto::new)
@@ -186,6 +181,13 @@ public class GroupBuyService {
                 .collect(Collectors.toList());
         long totalCount = groupBuyRepository.count();
         return new GroupbuyListResponseDto(groupbuyDtos, totalCount);
+    }
+
+    //작성한 공동구매 게시글 조회
+    @Transactional(readOnly = true)
+    public List<GroupbuyResponseDto> getMyGroupbuys(Long userId){
+        List<Groupbuy> myGroupbuys = groupBuyRepository.findByAuthor_Id(userId);
+        return myGroupbuys.stream().map(GroupbuyResponseDto::new).collect(Collectors.toList());
     }
 
     //작성한 게시글 수 세기
