@@ -22,45 +22,36 @@ public class OcrReceiptService {
     private final NlpService nlpService;                       // Komoran
     private final OcrNomalizationService normalizationService; // 자유명사 → 표준명 매핑
     private final FoodBoxCommandService commandService;        // 실제 저장
-    private final FoodBoxQueryService queryService;            // 저장 후 목록 반환
+    private final FoodBoxQueryService queryService; // 저장 후 목록 반환
+    private final OcrService ocrService;
 
     private static final String EXPIRY_PREFIX = "expiry:";
     private static final int DEFAULT_EXPIRY_DAYS = 0; // 0/없음 → null
 
     //저장 전 보여주기 - upload
     public Map<String, Integer> showOnlyOutput(List<OcrExtractedItem> ocrItems) {
+
         Map<String, Integer> finalCount = new LinkedHashMap<>();
-        if (ocrItems == null || ocrItems.isEmpty()) return finalCount;
+        if (ocrItems == null || ocrItems.isEmpty()) {
+            return finalCount;
+        }
 
         for (OcrExtractedItem line : ocrItems) {
-            log.debug("[PIPE] raw='{}' qty={}", line.getName(), line.getQuantity());
-
-            // 핵심명 추출
             String core = extractCoreByStar(line.getName());
-            log.debug("[PIPE]  -> core='{}'", core);
-            if (core == null || core.isBlank()) continue;
 
-            // 하나의 라인에 quantity 그대로
-            OcrExtractedItem pivot = new OcrExtractedItem(core, line.getQuantity());
-            NlpService.ClassifiedTokens classified = nlpService.classifyByUserDict(List.of(pivot));
-
-            log.debug("[PIPE]  NLP userDictKeys={}, freeNounKeys={}",
-                    (classified.getUserDict() != null ? classified.getUserDict().keySet() : List.of()),
-                    (classified.getFreeNouns() != null ? classified.getFreeNouns().keySet() : List.of()));
-
-            // 최종 표준명 선택
-            String stdName = pickOne(classified, core);
-
-            if (stdName == null || stdName.isBlank()) {
-                log.debug("[PIPE]  ~~ SKIP (unmapped) core='{}'", core); // ★ 매핑 실패 시 건너뜀
+            if (core == null || core.isBlank()) {
+                log.debug("[PIPE]  ~~ SKIP (empty core) raw='{}'", line.getName());
                 continue;
             }
 
-            log.debug("[PIPE]  ==> chosen='{}' +{}", stdName, line.getQuantity());
-            finalCount.merge(stdName, line.getQuantity(), Integer::sum);
-        }
+            OcrExtractedItem pivot = new OcrExtractedItem(core, line.getQuantity());
+            NlpService.ClassifiedTokens classified = nlpService.classifyByUserDict(List.of(pivot));
 
-        log.debug("[PIPE] finalCount={}", finalCount);
+            String stdName = pickOne(classified, core);
+            if (stdName != null && !stdName.isBlank()) {
+                finalCount.merge(stdName, line.getQuantity(), Integer::sum);
+            }
+        }
         return finalCount;
     }
 
@@ -132,22 +123,24 @@ public class OcrReceiptService {
                     .orElse(core);
         }
 
-        // 자유명사 → 표준명 매핑
-        if (classified != null && classified.getFreeNouns() != null && !classified.getFreeNouns().isEmpty()) {
-            Map<String, String> mapped = normalizationService.normalizeFreeNouns(
-                    new ArrayList<>(classified.getFreeNouns().keySet()));
-            if (mapped != null && !mapped.isEmpty()) {
-                return mapped.values().stream()
-                        .filter(Objects::nonNull).map(String::trim).filter(s -> !s.isBlank())
-                        .findFirst().orElse(core);
+        Set<String> keys = new LinkedHashSet<>();
+        if (classified != null && classified.getFreeNouns() != null) keys.addAll(classified.getFreeNouns().keySet());
+        if (core != null && !core.isBlank()) keys.add(core);
+
+        if (!keys.isEmpty()) {
+            Map<String, String> mapped = normalizationService.normalizeFreeNouns(new ArrayList<>(keys));
+
+            if (mapped != null) {
+                String alias = mapped.get(core);
+                if (alias != null && !alias.isBlank()) return alias;
+
+                Optional<String> any = mapped.values().stream()
+                        .filter(Objects::nonNull).map(String::trim).filter(s -> !s.isBlank()).findFirst();
+
+                if (any.isPresent()) return any.get();
             }
         }
-
-        // core에 alias
-        Map<String, String> alias = normalizationService.normalizeFreeNouns(List.of(core));
-        String a = (alias != null ? alias.get(core) : null);
-
-        return (a != null && !a.isBlank()) ? a : null;
+        return null;
     }
 
     // 품종 우선 → 없으면 대표식품

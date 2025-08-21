@@ -36,8 +36,9 @@ public class NlpService {
 
     private static String sanitize(String s) {
         if (s == null) return "";
-        s = Normalizer.normalize(s, Normalizer.Form.NFKC);   // 폭/기호 정규화
-        s = s.replaceAll("[^가-힣0-9a-zA-Z()\\s]", " "); //전처리
+        s = Normalizer.normalize(s, Normalizer.Form.NFKC); // 폭/기호 정규화
+        s = s.replaceAll("[\\(\\[\\{].*$", " ");
+        s = s.replaceAll("[^가-힣0-9a-zA-Z\\s]", " ");
         s = s.replaceAll("\\s+", " ").trim(); //공백 압축
         return s;
     }
@@ -96,6 +97,7 @@ public class NlpService {
             if (item == null || item.getName() == null || item.getName().isBlank()) continue;
 
             String cleaned = sanitize(item.getName());
+
             KomoranResult res = komoran.analyze(cleaned);
             List<Token> tokens = res.getTokenList();
             int qty = Math.max(1, item.getQuantity());
@@ -113,7 +115,6 @@ public class NlpService {
             }
 
             // 명사  중 user_dict 범위에 걸치지 않는 것만 자유명사로
-            outer:
             for (Token t : tokens) {
                 String pos = t.getPos();
                 if (pos == null || !(pos.startsWith("NNG") || pos.startsWith("NNP"))) continue;
@@ -123,11 +124,6 @@ public class NlpService {
                 if (noun == null || noun.isBlank()) continue;
                 if (userDictWords.contains(noun)) continue; // user_dict와 일치하면 이미 처리됨
 
-                int b = t.getBeginIndex(), e = t.getEndIndex();
-                for (int[] c : covered) {
-                    // 범위가 겹치면 skip (user_dict 토큰 내부 명사 제거)
-                    if (!(e <= c[0] || b >= c[1])) continue outer;
-                }
                 freeNounGroup.merge(noun, qty, Integer::sum);
             }
         }
@@ -138,7 +134,6 @@ public class NlpService {
         }
         log.debug("[NLP] userDictKeys={}, freeNounKeys={}",
                 userDictGroup.keySet(), freeNounGroup.keySet());
-
         return new ClassifiedTokens(userDictGroup, freeNounGroup);
     }
 

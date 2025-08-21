@@ -143,7 +143,6 @@ public class OcrService { //OCR 호출
             }
         }
 
-        log.debug("[OCR] total items parsed: {}", resultList.size());
         return resultList;
     }
 }
