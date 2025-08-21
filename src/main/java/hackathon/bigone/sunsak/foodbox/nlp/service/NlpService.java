@@ -7,6 +7,7 @@ import kr.co.shineware.nlp.komoran.core.Komoran;
 import kr.co.shineware.nlp.komoran.model.KomoranResult;
 import kr.co.shineware.nlp.komoran.model.Token;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.text.Normalizer;
 import java.util.*;
 
+@Slf4j
 @Service
 public class NlpService {
     private Komoran komoran;
@@ -129,6 +131,14 @@ public class NlpService {
                 freeNounGroup.merge(noun, qty, Integer::sum);
             }
         }
+        if (rawItems != null && !rawItems.isEmpty()) {
+            String joined = String.join(" | ",
+                    rawItems.stream().map(OcrExtractedItem::getName).filter(Objects::nonNull).toList());
+            log.debug("[NLP] input='{}'", joined);
+        }
+        log.debug("[NLP] userDictKeys={}, freeNounKeys={}",
+                userDictGroup.keySet(), freeNounGroup.keySet());
+
         return new ClassifiedTokens(userDictGroup, freeNounGroup);
     }
 
