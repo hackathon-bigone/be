@@ -36,8 +36,9 @@ public class NlpService {
 
     private static String sanitize(String s) {
         if (s == null) return "";
-        s = Normalizer.normalize(s, Normalizer.Form.NFKC);   // 폭/기호 정규화
-        s = s.replaceAll("[^가-힣0-9a-zA-Z()\\s]", " "); //전처리
+        s = Normalizer.normalize(s, Normalizer.Form.NFKC); // 폭/기호 정규화
+        s = s.replaceAll("[\\(\\[\\{].*$", " ");
+        s = s.replaceAll("[^가-힣0-9a-zA-Z\\s]", " ");
         s = s.replaceAll("\\s+", " ").trim(); //공백 압축
         return s;
     }
