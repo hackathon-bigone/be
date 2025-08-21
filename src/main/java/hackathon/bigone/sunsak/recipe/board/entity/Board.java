@@ -53,6 +53,8 @@ public class Board {
     @JoinColumn(name = "user_id")
     private SiteUser author;
 
+    private String authorUsername;
+
     // 단계
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     @Size(max = 15, message = "레시피 단계는 최대 15개까지 가능합니다.")
