@@ -76,7 +76,7 @@ public class BoardService {
             newBoard.getCategories().addAll(boardDto.getCategories());
         }
         Board savedBoard = boardRepository.save(newBoard);
-        return new BoardResponseDto(savedBoard, new ArrayList<>());
+        return new BoardResponseDto(savedBoard);
     }
 
     @Transactional
@@ -140,6 +140,7 @@ public class BoardService {
         Board savedBoard = boardRepository.save(existingBoard);
         List<CommentResponseDto> comments = commentService.getComments(postId);
 
+        // 생성자 변경에 맞추어 수정
         return new BoardResponseDto(savedBoard, comments);
     }
 
@@ -185,6 +186,7 @@ public class BoardService {
         List<BoardResponseDto> boardDtos = boards.stream()
                 .map(board -> {
                     List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
+                    // 생성자 변경에 맞추어 수정
                     return new BoardResponseDto(board, comments);
                 })
                 .collect(Collectors.toList());
@@ -198,9 +200,9 @@ public class BoardService {
                 .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
 
         List<CommentResponseDto> parentComments = commentService.getComments(postId);
-        // DTO에 3번째 인자를 전달하는 것이 아닌, DTO 생성자가 기존대로 두개 인자를 받도록 수정
+        BoardResponseDto responseDto = new BoardResponseDto(board, parentComments);
 
-        return new BoardResponseDto(board, parentComments);
+        return responseDto;
     }
 
     @Transactional
@@ -237,7 +239,10 @@ public class BoardService {
     public List<BoardResponseDto> getLikedBoardsByUser(SiteUser user) {
         return likeRepository.findByUser(user).stream()
                 .map(RecipeLike::getBoard)
-                .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
+                .map(board -> {
+                    List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
+                    return new BoardResponseDto(board, comments);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -245,7 +250,9 @@ public class BoardService {
     public List<BoardResponseDto> getScrapBoardsByUser(SiteUser user) {
         return scrapRepository.findByUser(user).stream()
                 .map(RecipeScrap::getBoard)
-                .map(board -> new BoardResponseDto(board, new ArrayList<>()))
+                .map(board -> {
+                    return new BoardResponseDto(board);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -257,7 +264,7 @@ public class BoardService {
         if (keywords.contains(",")) {
             List<String> keywordList = Arrays.stream(keywords.split(","))
                     .map(String::trim)
-                    .toList();
+                    .collect(Collectors.toList());
 
             Set<Board> uniqueBoards = new HashSet<>();
             for (String keyword : keywordList) {
@@ -269,8 +276,12 @@ public class BoardService {
         }
 
         List<BoardResponseDto> boardDtos = searchResults.stream()
-                .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
+                .map(board -> {
+                    List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
+                    return new BoardResponseDto(board, comments);
+                })
                 .collect(Collectors.toList());
+
         long totalCount = (long) searchResults.size();
         return new BoardListResponseDto(boardDtos, totalCount);
     }
@@ -280,12 +291,13 @@ public class BoardService {
         List<Board> boards = boardRepository.findTop5ByOrderByLikesDesc();
 
         List<BoardResponseDto> boardDtos = boards.stream()
-                .map(board -> new BoardResponseDto(board, new ArrayList<>()))
+                .map(board -> {
+                    return new BoardResponseDto(board, new ArrayList<>());
+                })
                 .collect(Collectors.toList());
         return new BoardListResponseDto(boardDtos, 5L);
     }
 
-    //한글 카테고리명을 Enum으로 변환하는 헬퍼 메서드
     private Optional<RecipeCategory> findCategoryByName(String categoryName) {
         if (categoryName == null || categoryName.isEmpty()) {
             return Optional.empty();
@@ -302,7 +314,11 @@ public class BoardService {
 
     public List<BoardResponseDto> getMyBoards(Long userId) {
         List<Board> myBoards = boardRepository.findByAuthor_Id(userId);
-        return myBoards.stream().map(BoardResponseDto::new).collect(Collectors.toList());
+        return myBoards.stream()
+                .map(board -> {
+                    return new BoardResponseDto(board);
+                })
+                .collect(Collectors.toList());
     }
 
     public long countMyBoards(Long userId){

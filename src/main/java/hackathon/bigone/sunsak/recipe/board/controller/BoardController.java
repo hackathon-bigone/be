@@ -82,17 +82,17 @@ public class BoardController {
 
     // 게시글 생성
     @PostMapping
-    public ResponseEntity<String> createBoard(
+    public ResponseEntity<BoardResponseDto> createBoard(
             @RequestBody BoardRequestDto boardDto,
             @AuthenticationPrincipal CustomUserDetail userDetail
     ) {
         if (userDetail == null) {
-            return new ResponseEntity<>("로그인이 필요합니다.", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
         }
         SiteUser author = userDetail.getUser();
 
-        boardService.create(boardDto, author);
-        return new ResponseEntity<>("게시글이 성공적으로 생성되었습니다.", HttpStatus.CREATED);
+        BoardResponseDto createdBoard = boardService.create(boardDto, author);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdBoard);
     }
 
 
