@@ -255,9 +255,10 @@ public class BoardService {
                 .collect(Collectors.toList());
     }
 
+    //검색
     @Transactional(readOnly = true)
-    public List<BoardResponseDto> findBoardByKeywords(String keywords) {
-        List<Board> searchResults = new ArrayList<>();
+    public BoardListResponseDto findBoardByKeywords(String keywords) {
+        List<Board> searchResults;
 
         if (keywords.contains(",")) {
             List<String> keywordList = Arrays.stream(keywords.split(","))
@@ -268,14 +269,15 @@ public class BoardService {
             for (String keyword : keywordList) {
                 uniqueBoards.addAll(boardRepository.findBySingleKeyword(keyword));
             }
-            searchResults.addAll(uniqueBoards);
+            searchResults = new ArrayList<>(uniqueBoards);
         } else {
             searchResults = boardRepository.findBySingleKeyword(keywords.trim());
         }
-
-        return searchResults.stream()
+        List<BoardResponseDto> boardDtos = searchResults.stream()
                 .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
                 .collect(Collectors.toList());
+        long totalCount = (long) searchResults.size();
+        return new BoardListResponseDto(boardDtos, totalCount);
     }
 
     @Transactional(readOnly = true)
@@ -311,9 +313,7 @@ public class BoardService {
     }
 
     public List<BoardResponseDto> getMyBoards(Long userId) {
-        // 레포지토리를 통해 해당 유저가 작성한 게시글 리스트를 조회하고 DTO로 변환하여 반환
         List<Board> myBoards = boardRepository.findByAuthor_Id(userId);
-        // 이 리스트를 BoardResponseDto로 변환하는 로직 추가
         return myBoards.stream().map(BoardResponseDto::new).collect(Collectors.toList());
     }
 

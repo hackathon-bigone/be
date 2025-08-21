@@ -112,6 +112,10 @@ public class GroupBuyService {
             throw new IllegalArgumentException("게시글 삭제 권한이 없습니다.");
         }
 
+        if (s3Uploader != null){
+            s3Uploader.delete(groupbuy.getMainImageUrl());
+        }
+
         groupBuyRepository.delete(groupbuy);
     }
 
@@ -159,12 +163,14 @@ public class GroupBuyService {
                 .collect(Collectors.toList());
     }
 
-    //검색
-    public List<GroupbuyResponseDto> searchGroupbuysByTitle(String keyword, Pageable pageable) {
+    // 검색
+    public GroupbuyListResponseDto searchGroupbuysByTitle(String keyword, Pageable pageable) {
         List<Groupbuy> groupbuys = groupBuyRepository.findByGroupbuyTitleContaining(keyword, pageable);
-        return groupbuys.stream()
+        long totalCount = groupBuyRepository.countByGroupbuyTitleContaining(keyword);
+        List<GroupbuyResponseDto> groupbuyDtos = groupbuys.stream()
                 .map(GroupbuyResponseDto::new)
                 .collect(Collectors.toList());
+        return new GroupbuyListResponseDto(groupbuyDtos, totalCount);
     }
 
     //모든 게시믈 조회
