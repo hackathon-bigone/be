@@ -43,24 +43,6 @@ public class RedisFoodSaver {
                 String variety = parts[1].trim();     //품종명
                 String expiry = (parts.length >= 3) ? parts[2].trim() : ""; //유통기한 없으면 빈문자열
 
-                // keyword 저장
-//                if (!variety.isEmpty()) {
-//                    String varietyKey = "keyword:" + variety;
-//                    if (!redisTemplate.hasKey(varietyKey)) {
-//                        redisTemplate.opsForValue().set(varietyKey, "대표식품명:" + mainName);
-//                    }
-//                }
-//                if (!variety.isEmpty()) {
-//                    String varietyKey = "keyword:" + variety;
-//                    redisTemplate.opsForValue().set(varietyKey, "품종명:" + variety);
-//                }
-
-//                if (!mainName.isEmpty()) {
-//                    String mainKey = "keyword:" + mainName;
-//                    if (!redisTemplate.hasKey(mainKey)) {
-//                        redisTemplate.opsForValue().set(mainKey, "품종명:" + variety);
-//                    }
-//                }
                 //대표 식품명만 redis
                 if (!mainName.isEmpty()) {
                     String mainKey = "keyword:" + mainName;
