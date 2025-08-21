@@ -107,11 +107,11 @@ public class GroupBuyController {
 
     // 검색
     @GetMapping("/search")
-    public ResponseEntity<List<GroupbuyResponseDto>> searchGroupbuys(
+    public ResponseEntity<GroupbuyListResponseDto> searchGroupbuys(
             @RequestParam String keyword,
             @PageableDefault(size = 10, page = 0) Pageable pageable) {
 
-        List<GroupbuyResponseDto> groupbuys = groupBuyService.searchGroupbuysByTitle(keyword, pageable);
+        GroupbuyListResponseDto groupbuys = groupBuyService.searchGroupbuysByTitle(keyword, pageable);
         return ResponseEntity.ok(groupbuys);
     }
 }

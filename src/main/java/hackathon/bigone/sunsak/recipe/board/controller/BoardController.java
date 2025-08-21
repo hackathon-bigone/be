@@ -47,8 +47,8 @@ public class BoardController {
 
     // 검색
     @GetMapping("/search")
-    public ResponseEntity<List<BoardResponseDto>> searchBoards(@RequestParam String keywords) {
-        List<BoardResponseDto> results = boardService.findBoardByKeywords(keywords);
+    public ResponseEntity<BoardListResponseDto> searchBoards(@RequestParam String keywords) {
+        BoardListResponseDto results = boardService.findBoardByKeywords(keywords);
         return ResponseEntity.ok(results);
     }
 
