@@ -2,6 +2,7 @@ package hackathon.bigone.sunsak.foodbox.ocr.service;
 
 import hackathon.bigone.sunsak.foodbox.ocr.dto.OcrExtractedItem;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OcrService { //OCR 호출
@@ -136,10 +138,12 @@ public class OcrService { //OCR 호출
                     }
                 }
 
+                log.debug("[OCR] sub[{}]/item[{}] name='{}', qty={}", i, j, name, quantity);
                 resultList.add(new OcrExtractedItem(name, quantity));
             }
         }
 
+        log.debug("[OCR] total items parsed: {}", resultList.size());
         return resultList;
     }
 }

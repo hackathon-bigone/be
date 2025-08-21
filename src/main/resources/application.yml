@@ -32,6 +32,11 @@ spring:
 
   main:
     lazy-initialization: false # true를 false로 변경
+
+  output:
+    ansi:
+      enabled: ALWAYS # 로그 색
+
 jwt:
   secret: ${JWT_SECRET}
 
@@ -44,5 +49,9 @@ cloud:
 
 naver:
   ocr:
-    secret_key: ${OCR_SECRET_KEY}
-    invoke_url: ${OCR_API_INVOKE_URL}
+    secret-key: ${OCR_SECRET_KEY}
+    invoke-url: ${OCR_API_INVOKE_URL}
+
+logging:
+  level:
+    hackathon.bigone.sunsak: DEBUG # 로그 확인
