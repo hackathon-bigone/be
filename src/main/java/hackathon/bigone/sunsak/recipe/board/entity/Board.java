@@ -49,11 +49,10 @@ public class Board {
     private String recipeDescription;
 
     // 작성자
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private SiteUser author;
 
-    private String authorUsername;
 
     // 단계
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
