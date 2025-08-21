@@ -138,7 +138,6 @@ public class BoardService {
         }
 
         Board savedBoard = boardRepository.save(existingBoard);
-
         List<CommentResponseDto> comments = commentService.getComments(postId);
 
         return new BoardResponseDto(savedBoard, comments);
@@ -169,18 +168,15 @@ public class BoardService {
 
         Optional<RecipeCategory> recipeCategoryOpt = findCategoryByName(category);
 
-        // 카테고리 필터링 로직
         if (recipeCategoryOpt.isPresent()) {
             RecipeCategory recipeCategory = recipeCategoryOpt.get();
             boards = boardRepository.findByCategoriesContaining(recipeCategory);
             totalCount = boardRepository.countByCategoriesContaining(recipeCategory);
         } else {
-            // 필터링이 없거나 잘못된 카테고리인 경우 전체 조회
             boards = boardRepository.findAll(Sort.by(Sort.Direction.DESC, "createDate"));
             totalCount = boardRepository.count();
         }
 
-        // 정렬 로직
         if ("popular".equalsIgnoreCase(sort)) {
             boards.sort(Comparator.comparingInt(board -> board.getLikes().size()));
             Collections.reverse(boards);
@@ -200,13 +196,11 @@ public class BoardService {
     public BoardResponseDto findBoardById(Long postId) {
         Board board = boardRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
+
         List<CommentResponseDto> parentComments = commentService.getComments(postId);
-        BoardResponseDto responseDto = new BoardResponseDto(board, parentComments);
+        // DTO에 3번째 인자를 전달하는 것이 아닌, DTO 생성자가 기존대로 두개 인자를 받도록 수정
 
-        responseDto.setLikeCount(board.getLikes().size());
-        responseDto.setCommentCount(board.getComments().size());
-
-        return responseDto;
+        return new BoardResponseDto(board, parentComments);
     }
 
     @Transactional
@@ -263,7 +257,7 @@ public class BoardService {
         if (keywords.contains(",")) {
             List<String> keywordList = Arrays.stream(keywords.split(","))
                     .map(String::trim)
-                    .collect(Collectors.toList());
+                    .toList();
 
             Set<Board> uniqueBoards = new HashSet<>();
             for (String keyword : keywordList) {
@@ -273,6 +267,7 @@ public class BoardService {
         } else {
             searchResults = boardRepository.findBySingleKeyword(keywords.trim());
         }
+
         List<BoardResponseDto> boardDtos = searchResults.stream()
                 .map(board -> new BoardResponseDto(board, commentService.getComments(board.getPostId())))
                 .collect(Collectors.toList());
@@ -285,9 +280,7 @@ public class BoardService {
         List<Board> boards = boardRepository.findTop5ByOrderByLikesDesc();
 
         List<BoardResponseDto> boardDtos = boards.stream()
-                .map(board -> {
-                    return new BoardResponseDto(board, new ArrayList<>());
-                })
+                .map(board -> new BoardResponseDto(board, new ArrayList<>()))
                 .collect(Collectors.toList());
         return new BoardListResponseDto(boardDtos, 5L);
     }
@@ -298,18 +291,13 @@ public class BoardService {
             return Optional.empty();
         }
 
-        switch (categoryName.toUpperCase()) {
-            case "왕초보":
-                return Optional.of(RecipeCategory.BEGINNER);
-            case "전자레인지/에어프라이어":
-                return Optional.of(RecipeCategory.MICROWAVE_AIRFRYER);
-            case "디저트":
-                return Optional.of(RecipeCategory.DESSERT);
-            case "비건":
-                return Optional.of(RecipeCategory.VEGAN);
-            default:
-                return Optional.empty();
-        }
+        return switch (categoryName.toUpperCase()) {
+            case "왕초보" -> Optional.of(RecipeCategory.BEGINNER);
+            case "전자레인지/에어프라이어" -> Optional.of(RecipeCategory.MICROWAVE_AIRFRYER);
+            case "디저트" -> Optional.of(RecipeCategory.DESSERT);
+            case "비건" -> Optional.of(RecipeCategory.VEGAN);
+            default -> Optional.empty();
+        };
     }
 
     public List<BoardResponseDto> getMyBoards(Long userId) {
