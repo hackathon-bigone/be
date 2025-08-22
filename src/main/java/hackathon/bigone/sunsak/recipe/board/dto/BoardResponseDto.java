@@ -29,7 +29,7 @@ public class BoardResponseDto {
     private String authorName;
     private String authorUsername;
     private long authorId;
-    private long authorPostCount;
+    private int authorPostCount;
 
     public BoardResponseDto(Board board, List<CommentResponseDto> comments) {
         this.postId = board.getPostId();
