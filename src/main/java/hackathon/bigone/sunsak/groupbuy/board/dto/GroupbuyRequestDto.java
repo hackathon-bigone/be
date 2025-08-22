@@ -16,6 +16,6 @@ public class GroupbuyRequestDto {
     private String groupbuyDescription;
     private String mainImageUrl;
     private Integer groupbuyCount;
-    private List<String> groupbuyLinkUrls = new ArrayList<>();
+    private List<String> buyLinks = new ArrayList<>();
     private GroupBuyStatus status;
 }

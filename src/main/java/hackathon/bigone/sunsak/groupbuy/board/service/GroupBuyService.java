@@ -43,8 +43,9 @@ public class GroupBuyService {
     //공동구매 생성 기능
     @Transactional
     public GroupbuyResponseDto create(GroupbuyRequestDto groupdto, SiteUser author) {
-        List<GroupBuyLink> links = (groupdto.getGroupbuyLinkUrls() != null) ?
-                groupdto.getGroupbuyLinkUrls().stream()
+        // groupbuyLinkUrls 필드의 데이터를 기반으로 GroupBuyLink 엔티티 리스트를 생성
+        List<GroupBuyLink> links = (groupdto.getBuyLinks() != null) ?
+                groupdto.getBuyLinks().stream()
                         .map(url -> {
                             GroupBuyLink link = new GroupBuyLink();
                             link.setGroupbuylinkUrl(url);
@@ -57,7 +58,7 @@ public class GroupBuyService {
         newGroupbuy.setGroupbuyDescription(groupdto.getGroupbuyDescription());
         newGroupbuy.setMainImageUrl(groupdto.getMainImageUrl());
         newGroupbuy.setGroupbuyCount(groupdto.getGroupbuyCount());
-        newGroupbuy.setStatus(GroupBuyStatus.RECRUITING); // 초기 상태는 '모집중'으로 설정
+        newGroupbuy.setStatus(GroupBuyStatus.RECRUITING);
         newGroupbuy.setAuthor(author);
 
         newGroupbuy.setBuyLinks(links);
@@ -76,12 +77,6 @@ public class GroupBuyService {
         if (groupbuy.getAuthor() == null || !groupbuy.getAuthor().equals(author)) {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
-
-        // 기존 이미지와 새로운 이미지가 다를 경우 기존 이미지 삭제 (이 부분을 제거)
-        // if (!groupbuy.getMainImageUrl().equals(groupdto.getMainImageUrl())){
-        //     s3Uploader.delete(groupbuy.getMainImageUrl());
-        // }
-
         groupbuy.setGroupbuyTitle(groupdto.getGroupbuyTitle());
         groupbuy.setGroupbuyDescription(groupdto.getGroupbuyDescription());
         groupbuy.setGroupbuyCount(groupdto.getGroupbuyCount());
@@ -92,7 +87,7 @@ public class GroupBuyService {
         }
 
         groupbuy.getBuyLinks().clear();
-        groupdto.getGroupbuyLinkUrls().stream()
+        groupdto.getBuyLinks().stream()
                 .map(url -> {
                     GroupBuyLink newLink = new GroupBuyLink();
                     newLink.setGroupbuylinkUrl(url);
