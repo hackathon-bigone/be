@@ -89,6 +89,11 @@ public class BoardService {
             throw new IllegalStateException("이 게시글을 수정할 권한이 없습니다.");
         }
 
+        // s3Uploader.delete(existingBoard.getMainImageUrl());
+        // for (Step step : existingBoard.getSteps()) {
+        //     s3Uploader.delete(step.getStepImageUrl());
+        // }
+
         existingBoard.setTitle(boardDto.getTitle());
         existingBoard.setRecipeDescription(boardDto.getRecipeDescription());
         existingBoard.setCookingTime(boardDto.getCookingTime());
@@ -147,11 +152,11 @@ public class BoardService {
             throw new IllegalStateException("이 게시글을 삭제할 권한이 없습니다.");
         }
 
-        s3Uploader.delete(existingBoard.getMainImageUrl());
+        // s3Uploader.delete(existingBoard.getMainImageUrl());
+        // for (Step step : existingBoard.getSteps()){
+        //     s3Uploader.delete(step.getStepImageUrl());
+        // }
 
-        for (Step step : existingBoard.getSteps()){
-            s3Uploader.delete(step.getStepImageUrl());
-        }
         boardRepository.delete(existingBoard);
     }
 
