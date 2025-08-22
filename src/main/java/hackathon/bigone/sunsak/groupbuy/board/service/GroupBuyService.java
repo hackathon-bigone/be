@@ -43,11 +43,12 @@ public class GroupBuyService {
     //공동구매 생성 기능
     @Transactional
     public GroupbuyResponseDto create(GroupbuyRequestDto groupdto, SiteUser author) {
-        // groupbuyLinkUrls 필드의 데이터를 기반으로 GroupBuyLink 엔티티 리스트를 생성
+        // buyLinks 필드의 데이터를 기반으로 GroupBuyLink 엔티티 리스트를 생성
         List<GroupBuyLink> links = (groupdto.getBuyLinks() != null) ?
                 groupdto.getBuyLinks().stream()
-                        .map(url -> {
+                        .map(url -> { // 'url'은 이제 문자열(String)입니다.
                             GroupBuyLink link = new GroupBuyLink();
+                            // url 문자열을 바로 사용
                             link.setGroupbuylinkUrl(url);
                             return link;
                         })
@@ -80,7 +81,7 @@ public class GroupBuyService {
         groupbuy.setGroupbuyTitle(groupdto.getGroupbuyTitle());
         groupbuy.setGroupbuyDescription(groupdto.getGroupbuyDescription());
         groupbuy.setGroupbuyCount(groupdto.getGroupbuyCount());
-        groupbuy.setMainImageUrl(groupdto.getMainImageUrl()); // 새로운 이미지 URL로 업데이트
+        groupbuy.setMainImageUrl(groupdto.getMainImageUrl());
 
         if (groupdto.getStatus() != null) {
             groupbuy.setStatus(groupdto.getStatus());
@@ -88,8 +89,9 @@ public class GroupBuyService {
 
         groupbuy.getBuyLinks().clear();
         groupdto.getBuyLinks().stream()
-                .map(url -> {
+                .map(url -> { // 'url'은 이제 문자열(String)입니다.
                     GroupBuyLink newLink = new GroupBuyLink();
+                    // url 문자열을 바로 사용
                     newLink.setGroupbuylinkUrl(url);
                     newLink.setGroupbuy(groupbuy);
                     return newLink;
@@ -109,9 +111,6 @@ public class GroupBuyService {
         if (!groupbuy.getAuthor().equals(author)) {
             throw new IllegalArgumentException("게시글 삭제 권한이 없습니다.");
         }
-
-        // 게시글 삭제 시 S3 이미지도 함께 삭제 (이 부분을 제거)
-        // s3Uploader.delete(groupbuy.getMainImageUrl());
 
         groupBuyRepository.delete(groupbuy);
     }
@@ -154,7 +153,6 @@ public class GroupBuyService {
         return groupBuyScrapRepository.findByUser(user).stream()
                 .map(scrap -> {
                     Groupbuy groupbuy = scrap.getGroupbuy();
-                    // Groupbuy 엔티티만 받는 생성자 호출
                     return new GroupbuyResponseDto(groupbuy);
                 })
                 .collect(Collectors.toList());
