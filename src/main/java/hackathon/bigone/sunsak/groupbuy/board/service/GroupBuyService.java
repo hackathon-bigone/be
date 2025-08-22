@@ -37,8 +37,8 @@ public class GroupBuyService {
     private final GroupBuyScrapRepository groupBuyScrapRepository;
     private final GroupBuyCommentService groupBuyCommentService;
     private final GroupBuyCommentRepository groupBuyCommentRepository;
-    private ScrapRepository scrapRepository;
-    private S3Uploader s3Uploader;
+    private final ScrapRepository scrapRepository;
+    private final S3Uploader s3Uploader;
 
     //공동구매 생성 기능
     @Transactional
@@ -77,7 +77,10 @@ public class GroupBuyService {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다.");
         }
 
-        s3Uploader.delete(groupbuy.getMainImageUrl());
+        // 기존 이미지와 새로운 이미지가 다를 경우 기존 이미지 삭제 (이 부분을 제거)
+        // if (!groupbuy.getMainImageUrl().equals(groupdto.getMainImageUrl())){
+        //     s3Uploader.delete(groupbuy.getMainImageUrl());
+        // }
 
         groupbuy.setGroupbuyTitle(groupdto.getGroupbuyTitle());
         groupbuy.setGroupbuyDescription(groupdto.getGroupbuyDescription());
@@ -112,9 +115,8 @@ public class GroupBuyService {
             throw new IllegalArgumentException("게시글 삭제 권한이 없습니다.");
         }
 
-        if (s3Uploader != null){
-            s3Uploader.delete(groupbuy.getMainImageUrl());
-        }
+        // 게시글 삭제 시 S3 이미지도 함께 삭제 (이 부분을 제거)
+        // s3Uploader.delete(groupbuy.getMainImageUrl());
 
         groupBuyRepository.delete(groupbuy);
     }
