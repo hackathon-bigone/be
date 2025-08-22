@@ -76,7 +76,8 @@ public class BoardService {
             newBoard.getCategories().addAll(boardDto.getCategories());
         }
         Board savedBoard = boardRepository.save(newBoard);
-        return new BoardResponseDto(savedBoard);
+        long authorPostCount = boardRepository.countByAuthor_Id(savedBoard.getAuthor().getId());
+        return new BoardResponseDto(savedBoard, new ArrayList<>(), (int) authorPostCount);
     }
 
     @Transactional
@@ -139,9 +140,8 @@ public class BoardService {
 
         Board savedBoard = boardRepository.save(existingBoard);
         List<CommentResponseDto> comments = commentService.getComments(postId);
-
-        // 생성자 변경에 맞추어 수정
-        return new BoardResponseDto(savedBoard, comments);
+        long authorPostCount = boardRepository.countByAuthor_Id(savedBoard.getAuthor().getId());
+        return new BoardResponseDto(savedBoard, comments, (int) authorPostCount);
     }
 
     @Transactional
@@ -186,8 +186,8 @@ public class BoardService {
         List<BoardResponseDto> boardDtos = boards.stream()
                 .map(board -> {
                     List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
-                    // 생성자 변경에 맞추어 수정
-                    return new BoardResponseDto(board, comments);
+                    long authorPostCount = board.getAuthor() != null ? boardRepository.countByAuthor_Id(board.getAuthor().getId()) : 0;
+                    return new BoardResponseDto(board, comments, (int) authorPostCount);
                 })
                 .collect(Collectors.toList());
 
@@ -200,7 +200,8 @@ public class BoardService {
                 .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
 
         List<CommentResponseDto> parentComments = commentService.getComments(postId);
-        BoardResponseDto responseDto = new BoardResponseDto(board, parentComments);
+        long authorPostCount = board.getAuthor() != null ? boardRepository.countByAuthor_Id(board.getAuthor().getId()) : 0;
+        BoardResponseDto responseDto = new BoardResponseDto(board, parentComments, (int) authorPostCount);
 
         return responseDto;
     }
@@ -241,7 +242,8 @@ public class BoardService {
                 .map(RecipeLike::getBoard)
                 .map(board -> {
                     List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
-                    return new BoardResponseDto(board, comments);
+                    long authorPostCount = board.getAuthor() != null ? boardRepository.countByAuthor_Id(board.getAuthor().getId()) : 0;
+                    return new BoardResponseDto(board, comments, (int) authorPostCount);
                 })
                 .collect(Collectors.toList());
     }
@@ -251,7 +253,8 @@ public class BoardService {
         return scrapRepository.findByUser(user).stream()
                 .map(RecipeScrap::getBoard)
                 .map(board -> {
-                    return new BoardResponseDto(board);
+                    long authorPostCount = board.getAuthor() != null ? boardRepository.countByAuthor_Id(board.getAuthor().getId()) : 0;
+                    return new BoardResponseDto(board, new ArrayList<>(), (int) authorPostCount);
                 })
                 .collect(Collectors.toList());
     }
@@ -278,7 +281,8 @@ public class BoardService {
         List<BoardResponseDto> boardDtos = searchResults.stream()
                 .map(board -> {
                     List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
-                    return new BoardResponseDto(board, comments);
+                    long authorPostCount = board.getAuthor() != null ? boardRepository.countByAuthor_Id(board.getAuthor().getId()) : 0;
+                    return new BoardResponseDto(board, comments, (int) authorPostCount);
                 })
                 .collect(Collectors.toList());
 
@@ -292,7 +296,8 @@ public class BoardService {
 
         List<BoardResponseDto> boardDtos = boards.stream()
                 .map(board -> {
-                    return new BoardResponseDto(board, new ArrayList<>());
+                    long authorPostCount = board.getAuthor() != null ? boardRepository.countByAuthor_Id(board.getAuthor().getId()) : 0;
+                    return new BoardResponseDto(board, new ArrayList<>(), (int) authorPostCount);
                 })
                 .collect(Collectors.toList());
         return new BoardListResponseDto(boardDtos, 5L);
@@ -316,7 +321,8 @@ public class BoardService {
         List<Board> myBoards = boardRepository.findByAuthor_Id(userId);
         return myBoards.stream()
                 .map(board -> {
-                    return new BoardResponseDto(board);
+                    long authorPostCount = boardRepository.countByAuthor_Id(board.getAuthor().getId());
+                    return new BoardResponseDto(board, new ArrayList<>(), (int) authorPostCount);
                 })
                 .collect(Collectors.toList());
     }

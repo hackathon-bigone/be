@@ -40,7 +40,7 @@ public class BoardResponseDto {
                 ? board.getAuthor().getNickname() // 🔹 nickname 사용
                 : null;
         this.authorUsername = (board.getAuthor() != null) ? board.getAuthor().getUsername() : null;
-        this.authorPostCount = authorPostCount;
+        this.authorPostCount = 0; // 이 생성자에서는 게시글 수를 알 수 없으므로 0으로 초기화합니다.
 
         this.steps = board.getSteps().stream()
                 .map(StepResponseDto::new)
@@ -77,7 +77,7 @@ public class BoardResponseDto {
         return hours +"시간 "+ minutes +"분";
     }
 
-    public BoardResponseDto(Board board) {
+    public BoardResponseDto(Board board, List<CommentResponseDto> comments, int authorPostCount) {
         this.postId = board.getPostId();
         this.title = board.getTitle();
         this.cookingTime = convertCookingTime(board.getCookingTime());
@@ -86,9 +86,9 @@ public class BoardResponseDto {
                 ? board.getAuthor().getNickname() // 🔹 nickname 사용
                 : null;
         this.authorId = (board.getAuthor() != null) ? board.getAuthor().getId() : null;
-
         this.authorUsername =  (board.getAuthor() != null) ? board.getAuthor().getUsername() : null;
-        this.authorPostCount = 0;
+        this.authorPostCount = authorPostCount; // 여기에서 authorPostCount를 할당합니다.
+
         this.steps = board.getSteps().stream()
                 .map(StepResponseDto::new)
                 .collect(Collectors.toList());
@@ -104,7 +104,7 @@ public class BoardResponseDto {
         this.categories = board.getCategories();
         this.recipeDescription = board.getRecipeDescription();
         this.createdAt = DisplayDateUtil.toDisplay(board.getCreateDate());
-
+        this.comments = comments;
 
         this.likeCount = board.getLikes().size();
         this.commentCount = board.getComments().size();
