@@ -4,6 +4,7 @@ import hackathon.bigone.sunsak.accounts.user.entity.SiteUser;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.joda.time.LocalDateTime;
 
 @Entity
 @Setter
@@ -20,5 +21,12 @@ public class RecipeLike {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private SiteUser user;
+
+    private LocalDateTime createDate;
+
+    @PrePersist
+    public void prePersist() {
+        this.createDate = LocalDateTime.now();
+    }
 
 }
