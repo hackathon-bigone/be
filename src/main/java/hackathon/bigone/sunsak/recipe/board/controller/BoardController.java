@@ -54,8 +54,12 @@ public class BoardController {
 
     // 특정 게시글 조회
     @GetMapping("/{postId}")
-    public ResponseEntity<BoardResponseDto> getBoardById(@PathVariable Long postId) {
-        BoardResponseDto board = boardService.findBoardById(postId);
+    public ResponseEntity<BoardResponseDto> getBoardById(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal CustomUserDetail userDetail
+    ) {
+        SiteUser currentUser = (userDetail != null) ? userDetail.getUser() : null;
+        BoardResponseDto board = boardService.findBoardById(postId, currentUser);
         return ResponseEntity.ok(board);
     }
 
@@ -124,9 +128,9 @@ public class BoardController {
         SiteUser currentUser = userDetail.getUser();
         try {
             boardService.deleteBoard(postId, currentUser);
-            return new ResponseEntity<>("게시글이 성공적으로 삭제되었습니다.", HttpStatus.NO_CONTENT); // 204 No Content
+            return new ResponseEntity<>("게시글이 성공적으로 삭제되었습니다.", HttpStatus.NO_CONTENT);
         } catch (IllegalStateException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN); // 403 Forbidden
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.FORBIDDEN);
         }
     }
 
