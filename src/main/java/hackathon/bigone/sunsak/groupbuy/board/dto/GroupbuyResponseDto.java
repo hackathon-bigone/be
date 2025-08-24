@@ -29,7 +29,6 @@ public class GroupbuyResponseDto {
     private String authorUsername;
 
     private List<String> groupbuyLinkUrls;
-
     private int scrapCount;
     private int commentCount;
     private List<GroupBuyCommentResponseDto> comments;

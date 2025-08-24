@@ -24,6 +24,7 @@ public class BoardResponseDto {
     private String recipeDescription;
     private String createdAt;
     private List<CommentResponseDto> comments;
+    private boolean isLikedByCurrentUser;
     private int likeCount;
     private int commentCount;
     private String authorName;
@@ -61,6 +62,7 @@ public class BoardResponseDto {
 
         this.likeCount = board.getLikes().size();
         this.commentCount = board.getComments().size();
+        this.isLikedByCurrentUser = isLikedByCurrentUser;
     }
 
     public String convertCookingTime(int totalMinutes){
@@ -77,7 +79,7 @@ public class BoardResponseDto {
         return hours +"시간 "+ minutes +"분";
     }
 
-    public BoardResponseDto(Board board, List<CommentResponseDto> comments, int authorPostCount) {
+    public BoardResponseDto(Board board, List<CommentResponseDto> comments, int authorPostCount, boolean isLikedByCurrentUser, int likeCount) {
         this.postId = board.getPostId();
         this.title = board.getTitle();
         this.cookingTime = convertCookingTime(board.getCookingTime());
@@ -108,5 +110,6 @@ public class BoardResponseDto {
 
         this.likeCount = board.getLikes().size();
         this.commentCount = board.getComments().size();
+        this.isLikedByCurrentUser = isLikedByCurrentUser;
     }
 }

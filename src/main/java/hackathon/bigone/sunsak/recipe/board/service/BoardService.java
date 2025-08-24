@@ -77,7 +77,7 @@ public class BoardService {
         }
         Board savedBoard = boardRepository.save(newBoard);
         long authorPostCount = boardRepository.countByAuthor_Id(savedBoard.getAuthor().getId());
-        return new BoardResponseDto(savedBoard, new ArrayList<>(), (int) authorPostCount);
+        return new BoardResponseDto(savedBoard, new ArrayList<>(), (int) authorPostCount, false, 0);
     }
 
     @Transactional
@@ -88,11 +88,6 @@ public class BoardService {
         if (!existingBoard.getAuthor().equals(currentUser)) {
             throw new IllegalStateException("이 게시글을 수정할 권한이 없습니다.");
         }
-
-        // s3Uploader.delete(existingBoard.getMainImageUrl());
-        // for (Step step : existingBoard.getSteps()) {
-        //     s3Uploader.delete(step.getStepImageUrl());
-        // }
 
         existingBoard.setTitle(boardDto.getTitle());
         existingBoard.setRecipeDescription(boardDto.getRecipeDescription());
@@ -140,7 +135,12 @@ public class BoardService {
         Board savedBoard = boardRepository.save(existingBoard);
         List<CommentResponseDto> comments = commentService.getComments(postId);
         long authorPostCount = boardRepository.countByAuthor_Id(savedBoard.getAuthor().getId());
-        return new BoardResponseDto(savedBoard, comments, (int) authorPostCount);
+
+        // 좋아요 여부와 수를 다시 조회하여 반환
+        boolean isLiked = likeRepository.findByBoardAndUser(savedBoard, currentUser).isPresent();
+        long likeCount = likeRepository.countByBoard(savedBoard);
+
+        return new BoardResponseDto(savedBoard, comments, (int) authorPostCount, isLiked, (int) likeCount);
     }
 
     @Transactional
@@ -151,16 +151,9 @@ public class BoardService {
         if (!existingBoard.getAuthor().equals(currentUser)) {
             throw new IllegalStateException("이 게시글을 삭제할 권한이 없습니다.");
         }
-
-        // s3Uploader.delete(existingBoard.getMainImageUrl());
-        // for (Step step : existingBoard.getSteps()){
-        //     s3Uploader.delete(step.getStepImageUrl());
-        // }
-
         boardRepository.delete(existingBoard);
     }
 
-    // 통합된 메서드
     @Transactional(readOnly = true)
     public BoardListResponseDto findAllRecipes(String category, String sort) {
         List<Board> boards;
@@ -178,15 +171,16 @@ public class BoardService {
         }
 
         if ("popular".equalsIgnoreCase(sort)) {
-            boards.sort(Comparator.comparingInt(board -> board.getLikes().size()));
+            boards.sort(Comparator.comparingLong(board -> likeRepository.countByBoard(board)));
             Collections.reverse(boards);
         }
 
         List<BoardResponseDto> boardDtos = boards.stream()
                 .map(board -> {
+                    long likeCount = likeRepository.countByBoard(board);
                     List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
                     long authorPostCount = board.getAuthor() != null ? boardRepository.countByAuthor_Id(board.getAuthor().getId()) : 0;
-                    return new BoardResponseDto(board, comments, (int) authorPostCount);
+                    return new BoardResponseDto(board, comments, (int) authorPostCount, false, (int) likeCount);
                 })
                 .collect(Collectors.toList());
 
@@ -194,13 +188,18 @@ public class BoardService {
     }
 
     @Transactional(readOnly = true)
-    public BoardResponseDto findBoardById(Long postId) {
+    public BoardResponseDto findBoardById(Long postId, SiteUser currentUser) {
         Board board = boardRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
 
         List<CommentResponseDto> parentComments = commentService.getComments(postId);
         long authorPostCount = board.getAuthor() != null ? boardRepository.countByAuthor_Id(board.getAuthor().getId()) : 0;
-        BoardResponseDto responseDto = new BoardResponseDto(board, parentComments, (int) authorPostCount);
+
+        // 좋아요 여부와 수를 조회합니다.
+        boolean isLiked = likeRepository.findByBoardAndUser(board, currentUser).isPresent();
+        long likeCount = likeRepository.countByBoard(board);
+
+        BoardResponseDto responseDto = new BoardResponseDto(board, parentComments, (int) authorPostCount, isLiked, (int) likeCount);
 
         return responseDto;
     }
@@ -242,7 +241,8 @@ public class BoardService {
                 .map(board -> {
                     List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
                     long authorPostCount = board.getAuthor() != null ? boardRepository.countByAuthor_Id(board.getAuthor().getId()) : 0;
-                    return new BoardResponseDto(board, comments, (int) authorPostCount);
+                    long likeCount = likeRepository.countByBoard(board);
+                    return new BoardResponseDto(board, comments, (int) authorPostCount, true, (int) likeCount);
                 })
                 .collect(Collectors.toList());
     }
@@ -253,12 +253,12 @@ public class BoardService {
                 .map(RecipeScrap::getBoard)
                 .map(board -> {
                     long authorPostCount = board.getAuthor() != null ? boardRepository.countByAuthor_Id(board.getAuthor().getId()) : 0;
-                    return new BoardResponseDto(board, new ArrayList<>(), (int) authorPostCount);
+                    long likeCount = likeRepository.countByBoard(board);
+                    return new BoardResponseDto(board, new ArrayList<>(), (int) authorPostCount, false, (int) likeCount);
                 })
                 .collect(Collectors.toList());
     }
 
-    //검색
     @Transactional(readOnly = true)
     public BoardListResponseDto findBoardByKeywords(String keywords) {
         List<Board> searchResults;
@@ -281,7 +281,8 @@ public class BoardService {
                 .map(board -> {
                     List<CommentResponseDto> comments = commentService.getComments(board.getPostId());
                     long authorPostCount = board.getAuthor() != null ? boardRepository.countByAuthor_Id(board.getAuthor().getId()) : 0;
-                    return new BoardResponseDto(board, comments, (int) authorPostCount);
+                    long likeCount = likeRepository.countByBoard(board);
+                    return new BoardResponseDto(board, comments, (int) authorPostCount, false, (int) likeCount);
                 })
                 .collect(Collectors.toList());
 
@@ -296,7 +297,8 @@ public class BoardService {
         List<BoardResponseDto> boardDtos = boards.stream()
                 .map(board -> {
                     long authorPostCount = board.getAuthor() != null ? boardRepository.countByAuthor_Id(board.getAuthor().getId()) : 0;
-                    return new BoardResponseDto(board, new ArrayList<>(), (int) authorPostCount);
+                    long likeCount = likeRepository.countByBoard(board);
+                    return new BoardResponseDto(board, new ArrayList<>(), (int) authorPostCount, false, (int) likeCount);
                 })
                 .collect(Collectors.toList());
         return new BoardListResponseDto(boardDtos, 5L);
@@ -321,7 +323,8 @@ public class BoardService {
         return myBoards.stream()
                 .map(board -> {
                     long authorPostCount = boardRepository.countByAuthor_Id(board.getAuthor().getId());
-                    return new BoardResponseDto(board, new ArrayList<>(), (int) authorPostCount);
+                    long likeCount = likeRepository.countByBoard(board);
+                    return new BoardResponseDto(board, new ArrayList<>(), (int) authorPostCount, false, (int) likeCount);
                 })
                 .collect(Collectors.toList());
     }
