@@ -70,7 +70,9 @@ public class HomeService {
     public HomeFoodDto getGuestFoodBox() {
         return HomeFoodDto.builder()
                 .today(todayKor())
-                .message("로그인하고 식품 관리를 시작해보세요!")
+                .message("로그인하고 \n" +
+                        "순삭의 다양한 서비스를\n" +
+                        "경험해보세요!")
                 .summary(null)
                 .build();
     }
