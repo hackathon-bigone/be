@@ -65,15 +65,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(java.util.List.of(
-                "http://localhost:3000",
-                "https://soonsak.vercel.app"
-        ));
+        config.setAllowedOriginPatterns(java.util.List.of("*"));
+        config.setAllowCredentials(true);
 
         config.setAllowedMethods(java.util.List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         config.setAllowedHeaders(java.util.List.of("*"));
         // JWT를 헤더로 내려보내면 노출 헤더에 추가
-        config.setExposedHeaders(java.util.List.of("Authorization"));
+        config.setExposedHeaders(java.util.List.of("Authorization", "Location"));
         config.setAllowCredentials(true); // 쿠키/자격증명 허용 시 필수
         config.setMaxAge(3600L);          // 프리플라이트 캐시
 

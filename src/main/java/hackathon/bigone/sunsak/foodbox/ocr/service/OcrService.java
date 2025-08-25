@@ -41,6 +41,8 @@ public class OcrService { //OCR 호출
         conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
         conn.setRequestProperty("X-OCR-SECRET", secretKey);
 
+        String format = detectFormat(file);
+
         // JSON message 구성
         JSONObject message = new JSONObject();
         message.put("version", "V2"); // 필요시 png로 변경
@@ -48,7 +50,7 @@ public class OcrService { //OCR 호출
         message.put("timestamp", System.currentTimeMillis());
 
         JSONObject imageObj = new JSONObject();
-        imageObj.put("format", "jpg");
+        imageObj.put("format", format);
         imageObj.put("name", file.getOriginalFilename());
         JSONArray images = new JSONArray();
         images.put(imageObj);
@@ -64,13 +66,25 @@ public class OcrService { //OCR 호출
             os.flush();
         }
 
-        // 응답 처리
-        int responseCode = conn.getResponseCode();
-        InputStream is = (responseCode == 200) ? conn.getInputStream() : conn.getErrorStream();
-        String rawResponse = StreamUtils.copyToString(is, StandardCharsets.UTF_8);
-        conn.disconnect();
+        int code = conn.getResponseCode();
+        try (InputStream is = (code == 200 ? conn.getInputStream() : conn.getErrorStream())) {
+            String raw = StreamUtils.copyToString(is, StandardCharsets.UTF_8);
+            conn.disconnect();
 
-        return parseItemsFromResponse(rawResponse);
+            // 👇 안전 파싱 + 에러 로그
+            JSONObject res;
+            try { res = new JSONObject(raw); }
+            catch (Exception e) {
+                log.error("[OCR] Non-JSON response. status={}, body(len)={}", code, raw.length());
+                throw new RuntimeException("OCR upstream returned non-JSON");
+            }
+            JSONArray resImages = res.optJSONArray("images");
+            if (code != 200 || resImages == null) {
+                log.error("[OCR] Upstream error. status={}, body={}", code, raw);
+                throw new RuntimeException("OCR failed: " + res.optString("message", "no images"));
+            }
+            return parseItemsFromResponse(raw);
+        }
     }
 
     private void writeMultipartForm(OutputStream out, String jsonMessage, MultipartFile file, String boundary) throws IOException {
@@ -83,10 +97,11 @@ public class OcrService { //OCR 호출
         writer.flush();
 
         // file part
+        String ct = (file.getContentType() == null ? "application/octet-stream" : file.getContentType());
         writer.append("--").append(boundary).append("\r\n");
         writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"")
                 .append(file.getOriginalFilename()).append("\"\r\n");
-        writer.append("Content-Type: application/octet-stream\r\n\r\n");
+        writer.append("Content-Type: ").append(ct).append("\r\n\r\n");
         writer.flush();
 
         file.getInputStream().transferTo(out);
@@ -145,4 +160,17 @@ public class OcrService { //OCR 호출
 
         return resultList;
     }
+
+    private String detectFormat(MultipartFile file) {
+        String ct = (file.getContentType() == null ? "" : file.getContentType()).toLowerCase();
+        String name = (file.getOriginalFilename() == null ? "" : file.getOriginalFilename()).toLowerCase();
+
+        if (ct.contains("jpeg") || name.endsWith(".jpg") || name.endsWith(".jpeg")) return "jpg";
+        if (ct.contains("png")  || name.endsWith(".png"))  return "png";
+        if (ct.contains("pdf")  || name.endsWith(".pdf"))  return "pdf";
+
+        // CLOVA Receipt는 webp/heic 미지원. 명확히 거절하자(프론트에서 jpg/png로 제한 권장)
+        throw new IllegalArgumentException("Unsupported image format: contentType=" + ct + ", filename=" + name);
+    }
+
 }
