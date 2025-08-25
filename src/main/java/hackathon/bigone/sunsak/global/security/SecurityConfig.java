@@ -71,7 +71,7 @@ public class SecurityConfig {
         ));
 
         config.setAllowedMethods(java.util.List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
-        config.setAllowedHeaders(java.util.List.of("Authorization","Content-Type","Accept","X-Requested-With"));
+        config.setAllowedHeaders(java.util.List.of("*"));
         // JWT를 헤더로 내려보내면 노출 헤더에 추가
         config.setExposedHeaders(java.util.List.of("Authorization"));
         config.setAllowCredentials(true); // 쿠키/자격증명 허용 시 필수
